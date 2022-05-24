@@ -22,21 +22,17 @@ using HypertextLiteral
 # ╔═╡ 9d54739d-1d80-46fd-9482-4076b057e9e2
 md"""
 # Notebook as networks viewer
+
+This notebook contains a viewer for Pluto.jl notebooks built using [d3.js](https://d3js.org/). The whole thing is an hacked version of the [force directed graph](https://observablehq.com/@d3/force-directed-graph) d3 notebook. It is using the Pluto cell dependency data under the hood ([from this pr](https://github.com/fonsp/Pluto.jl/pull/891)).
+
+##### Improvement ideas
+ - Add color to cells
+ - Color edges based on their types (hard, soft, cycles...)
+ - See symbols when hovering link
 """
-
-# ╔═╡ 8ba8ad47-f088-4b60-846a-5eb2e53bf03c
-md"""
-### A simple notebook with a cycle
-"""
-
-# ╔═╡ 6d5e4c11-c191-4cf0-8f42-eafed71ada33
-
 
 # ╔═╡ 8a196cde-2464-49cb-ad25-545a187d2c6b
 
-
-# ╔═╡ 348eaead-895b-4f82-ba84-c8d2ccdd335e
-notebook = Pluto.load_notebook("~/Projects/Pluto.jl/sample/Tower of Hanoi.jl" |> expanduser);
 
 # ╔═╡ 25509c6f-78fd-43c4-885c-58bb1827f491
 function show_network(nodes, links)
@@ -290,6 +286,8 @@ begin
 		res = show_network(network.nodes, network.links)
 		show(io, m, res)
 	end
+
+	NotebookAsNetwork
 end
 
 # ╔═╡ 2595da70-ce88-4020-a11d-458269841fdb
@@ -696,14 +694,11 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─60729d3b-00ee-4b22-ad5d-1efd3331d314
 # ╟─c7325ecf-b0dd-4c93-92f4-6e702dc16323
 # ╟─44d27a2c-a8b4-445c-82a0-5d3dd4aeec17
-# ╟─8ba8ad47-f088-4b60-846a-5eb2e53bf03c
-# ╠═6d5e4c11-c191-4cf0-8f42-eafed71ada33
 # ╠═8a196cde-2464-49cb-ad25-545a187d2c6b
-# ╠═0549333b-2544-4e76-8c8d-24d21936c35d
-# ╠═348eaead-895b-4f82-ba84-c8d2ccdd335e
-# ╠═2595da70-ce88-4020-a11d-458269841fdb
-# ╠═d2473565-48ef-45e0-a7ab-232791a423df
-# ╠═25509c6f-78fd-43c4-885c-58bb1827f491
+# ╟─0549333b-2544-4e76-8c8d-24d21936c35d
+# ╟─2595da70-ce88-4020-a11d-458269841fdb
+# ╟─d2473565-48ef-45e0-a7ab-232791a423df
+# ╟─25509c6f-78fd-43c4-885c-58bb1827f491
 # ╠═7052b663-37fc-42fe-af84-9bcff123b95f
 # ╠═33b91768-4e2f-4873-90e4-149a7fdaa175
 # ╠═7243b354-db7d-11ec-0463-6915afff3234
