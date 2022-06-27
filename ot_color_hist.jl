@@ -128,7 +128,7 @@ img_a = Downloads.download(source_url) |> Images.load
 quantize(img_a, quantized_num)
 
 # ╔═╡ a7a8b0cb-c12d-4c7e-9989-b2f75384c4b1
-@bind target_url Select(collect(images); default=collect(values(images))[2])
+@bind target_url Select(collect(images); default=collect(keys(images))[2])
 
 # ╔═╡ edaac758-6dfa-4c2c-800b-8c3b16267479
 img_b = Downloads.download(target_url) |> Images.load
