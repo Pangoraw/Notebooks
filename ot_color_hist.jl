@@ -1,32 +1,34 @@
 ### A Pluto.jl notebook ###
-# v0.19.6
+# v0.19.9
 
 using Markdown
 using InteractiveUtils
 
+# This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
+macro bind(def, element)
+    quote
+        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
+        local el = $(esc(element))
+        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
+        el
+    end
+end
+
 # ╔═╡ 802ffb26-e7cb-11ec-2898-afdc5b7c1e41
 using Plots, Images, ImageShow, Clustering,
-	JuMP, GLPK, Downloads
+	JuMP, GLPK, Downloads, PlutoUI
 
 # ╔═╡ 7307896a-0b1e-468a-a901-0096f4982c0f
 md"""
-# Histogram equalization
+# Histogram equalization using Optimal Transport
 """
 
-# ╔═╡ 9c95699f-6e70-42ba-809b-a11cf94dd9ff
-industrial = Downloads.download("https://user-images.githubusercontent.com/9824244/172810252-6cce3fe4-1062-40c0-9740-614b937cc987.jpg") |> Images.load
+# ╔═╡ 1d75b10f-8711-4eff-bff7-ca459790a470
+@bind quantized_num Slider(1:40, show_value = true, default = 28)
 
-# ╔═╡ edaac758-6dfa-4c2c-800b-8c3b16267479
-desert = Downloads.download("https://user-images.githubusercontent.com/9824244/172810239-72732532-0b21-45f3-bb8a-0064eb1b6e34.jpg") |> Images.load
-
-# ╔═╡ e616208c-2756-4f2d-a6d6-6456e9d49dae
+# ╔═╡ b3613e16-237b-4abb-b9dd-54ef65a04cdd
 md"""
-## `Desert` $\rightarrow$ `Industrial`
-"""
-
-# ╔═╡ 61af4a84-6f60-4d6c-b8a4-2143654bcba2
-md"""
-## `Industrial` $\rightarrow$ `Desert`
+---
 """
 
 # ╔═╡ 7944d18f-530b-48a7-8e7e-a76f21673e17
@@ -38,16 +40,8 @@ md"""
 function quantize(img, n_clusters)
 	kmeans_results = kmeans(img, n_clusters)
 	colorview(RGB, reshape(kmeans_results.centers[:, assignments(kmeans_results)],
-		3, size(desert,2), size(desert, 2)))
+		3, size(img,2), size(img, 2)))
 end
-
-# ╔═╡ 1fb27039-29f3-478d-a1bb-ab4f42d3ab7f
-# ╠═╡ show_logs = false
-quantize(industrial, 2)
-
-# ╔═╡ fab330c9-d6d1-4e91-93fd-a8c41196f8a6
-# ╠═╡ show_logs = false
-quantize(desert, 2)
 
 # ╔═╡ 4e0ea0ee-0acb-4d60-8e50-1e3d5e17307b
 """
@@ -115,13 +109,54 @@ function transfer(img_a, img_b, n_clusters)
 			reshape(new_centers'[:, assignments(μ)], 3, size(img_a, 2), size(img_a, 2)))
 end
 
+# ╔═╡ 5ae4f6e1-e2c4-4c2c-9ad0-8c15de476b64
+images = Dict(
+	"https://user-images.githubusercontent.com/9824244/175952284-deef6f6b-7f7c-4965-aea0-9d14126f3939.png" => "Snowberg",
+	"https://user-images.githubusercontent.com/9824244/175952415-98a57dcc-37ee-435f-ae58-522b063f9b14.jpg" => "Golf",
+	"https://user-images.githubusercontent.com/9824244/172810252-6cce3fe4-1062-40c0-9740-614b937cc987.jpg" => "Industrial",
+	"https://user-images.githubusercontent.com/9824244/172810239-72732532-0b21-45f3-bb8a-0064eb1b6e34.jpg" => "Desert",
+)
+
+# ╔═╡ 734f2991-8d66-4232-ace7-a1d4d7ad0bdf
+@bind source_url Select(collect(images))
+
+# ╔═╡ 9c95699f-6e70-42ba-809b-a11cf94dd9ff
+img_a = Downloads.download(source_url) |> Images.load
+
+# ╔═╡ 1fb27039-29f3-478d-a1bb-ab4f42d3ab7f
+# ╠═╡ show_logs = false
+quantize(img_a, quantized_num)
+
+# ╔═╡ a7a8b0cb-c12d-4c7e-9989-b2f75384c4b1
+@bind target_url Select(collect(images); default=collect(values(images))[2])
+
+# ╔═╡ edaac758-6dfa-4c2c-800b-8c3b16267479
+img_b = Downloads.download(target_url) |> Images.load
+
 # ╔═╡ 1cb4b667-ec83-45d1-afd7-e940e1c6b2cb
 # ╠═╡ show_logs = false
-transfer(desert, industrial, 10)
+transfer(img_b, img_a, quantized_num)
 
 # ╔═╡ c139d062-c2c9-44fa-ba0a-3454c444e9af
 # ╠═╡ show_logs = false
-transfer(industrial, desert, 10)
+transfer(img_a, img_b, quantized_num)
+
+# ╔═╡ fab330c9-d6d1-4e91-93fd-a8c41196f8a6
+# ╠═╡ show_logs = false
+quantize(img_b, quantized_num)
+
+# ╔═╡ f3fc6896-1578-4fd3-be78-24479cd340c0
+target_name = images[target_url]; source_name = images[source_url];
+
+# ╔═╡ e616208c-2756-4f2d-a6d6-6456e9d49dae
+md"""
+## $source_name $$\rightarrow$$ $target_name
+"""
+
+# ╔═╡ 61af4a84-6f60-4d6c-b8a4-2143654bcba2
+md"""
+## $target_name $$\rightarrow$$ $source_name
+"""
 
 # ╔═╡ 24f1ca9a-4709-471c-a4a0-f676e24ed56c
 to_dist(img) = reshape(channelview(img) .|> Float32, 3, size(img, 2) ^ 2)
@@ -141,6 +176,7 @@ ImageShow = "4e3cecfd-b093-5904-9786-8bbb286a6a31"
 Images = "916415d5-f1e6-5110-898d-aaa5f9f070e0"
 JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 
 [compat]
 Clustering = "~0.14.2"
@@ -149,6 +185,7 @@ ImageShow = "~0.3.6"
 Images = "~0.25.2"
 JuMP = "~0.22.3"
 Plots = "~1.29.1"
+PlutoUI = "~0.7.39"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -163,6 +200,12 @@ deps = ["ChainRulesCore", "LinearAlgebra"]
 git-tree-sha1 = "6f1d9bc1c08f9f4a8fa92e3ea3cb50153a1b40d4"
 uuid = "621f4979-c628-5d54-868e-fcf4e3e8185c"
 version = "1.1.0"
+
+[[deps.AbstractPlutoDingetjes]]
+deps = ["Pkg"]
+git-tree-sha1 = "8eaf9f1b4921132a4cff3f36a1d9ba923b14a481"
+uuid = "6e696c72-6542-2067-7265-42206c756150"
+version = "1.1.4"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra"]
@@ -568,6 +611,24 @@ deps = ["Artifacts", "Cairo_jll", "Fontconfig_jll", "FreeType2_jll", "Glib_jll",
 git-tree-sha1 = "129acf094d168394e80ee1dc4bc06ec835e510a3"
 uuid = "2e76f6c2-a576-52d4-95c1-20adfe4de566"
 version = "2.8.1+1"
+
+[[deps.Hyperscript]]
+deps = ["Test"]
+git-tree-sha1 = "8d511d5b81240fc8e6802386302675bdf47737b9"
+uuid = "47d2ed2b-36de-50cf-bf87-49c2cf4b8b91"
+version = "0.0.4"
+
+[[deps.HypertextLiteral]]
+deps = ["Tricks"]
+git-tree-sha1 = "c47c5fa4c5308f27ccaac35504858d8914e102f9"
+uuid = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
+version = "0.9.4"
+
+[[deps.IOCapture]]
+deps = ["Logging", "Random"]
+git-tree-sha1 = "f7be53659ab06ddc986428d3a9dcc95f6fa6705a"
+uuid = "b5f81e59-6552-4d32-b1f0-c071b021bf89"
+version = "0.2.2"
 
 [[deps.ImageAxes]]
 deps = ["AxisArrays", "ImageBase", "ImageCore", "Reexport", "SimpleTraits"]
@@ -1100,6 +1161,12 @@ git-tree-sha1 = "9e42de869561d6bdf8602c57ec557d43538a92f0"
 uuid = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 version = "1.29.1"
 
+[[deps.PlutoUI]]
+deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "Markdown", "Random", "Reexport", "UUIDs"]
+git-tree-sha1 = "8d1f54886b9037091edf146b517989fc4a09efec"
+uuid = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+version = "0.7.39"
+
 [[deps.Preferences]]
 deps = ["TOML"]
 git-tree-sha1 = "47e5f437cc0e7ef2ce8406ce1e7e24d44915f88d"
@@ -1337,6 +1404,11 @@ deps = ["Random", "Test"]
 git-tree-sha1 = "216b95ea110b5972db65aa90f88d8d89dcb8851c"
 uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
 version = "0.9.6"
+
+[[deps.Tricks]]
+git-tree-sha1 = "6bac775f2d42a611cdfcd1fb217ee719630c4175"
+uuid = "410a4b4d-49e4-4fbc-ab6d-cb71b17b3775"
+version = "0.1.6"
 
 [[deps.URIs]]
 git-tree-sha1 = "97bbe755a53fe859669cd907f2d96aee8d2c1355"
@@ -1595,19 +1667,25 @@ version = "0.9.1+5"
 
 # ╔═╡ Cell order:
 # ╟─7307896a-0b1e-468a-a901-0096f4982c0f
+# ╟─734f2991-8d66-4232-ace7-a1d4d7ad0bdf
+# ╟─a7a8b0cb-c12d-4c7e-9989-b2f75384c4b1
+# ╟─1d75b10f-8711-4eff-bff7-ca459790a470
 # ╟─9c95699f-6e70-42ba-809b-a11cf94dd9ff
-# ╟─1fb27039-29f3-478d-a1bb-ab4f42d3ab7f
 # ╟─edaac758-6dfa-4c2c-800b-8c3b16267479
-# ╟─fab330c9-d6d1-4e91-93fd-a8c41196f8a6
 # ╟─e616208c-2756-4f2d-a6d6-6456e9d49dae
-# ╠═1cb4b667-ec83-45d1-afd7-e940e1c6b2cb
+# ╟─1cb4b667-ec83-45d1-afd7-e940e1c6b2cb
 # ╟─61af4a84-6f60-4d6c-b8a4-2143654bcba2
-# ╠═c139d062-c2c9-44fa-ba0a-3454c444e9af
+# ╟─c139d062-c2c9-44fa-ba0a-3454c444e9af
+# ╟─b3613e16-237b-4abb-b9dd-54ef65a04cdd
+# ╟─1fb27039-29f3-478d-a1bb-ab4f42d3ab7f
+# ╟─fab330c9-d6d1-4e91-93fd-a8c41196f8a6
 # ╟─7944d18f-530b-48a7-8e7e-a76f21673e17
 # ╠═ae199d04-0d1b-43e4-9288-a9ccf24375f4
 # ╠═5b998eb6-2bf4-4aba-b854-39b5a12dcd6c
 # ╠═20d7c5ef-3302-41d0-90de-d66fa7515091
 # ╟─4e0ea0ee-0acb-4d60-8e50-1e3d5e17307b
+# ╠═f3fc6896-1578-4fd3-be78-24479cd340c0
+# ╟─5ae4f6e1-e2c4-4c2c-9ad0-8c15de476b64
 # ╠═24f1ca9a-4709-471c-a4a0-f676e24ed56c
 # ╟─d863957e-554c-4838-8cdc-2d6a6525804a
 # ╠═802ffb26-e7cb-11ec-2898-afdc5b7c1e41
