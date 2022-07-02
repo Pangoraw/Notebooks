@@ -242,14 +242,6 @@ open(test_file, "w") do f
 	)))
 end
 
-# ╔═╡ 5fb74f1f-ad35-4ced-840a-db673a510a4b
-Mesh(to_triangles(
-		Pyramid(
-			Elevated(Circle(radius=10.), 5.),
-			Cookie(r1=20., r2=5., n_circles=10)
-		); Δ = .05
-	))
-
 # ╔═╡ edf0e11d-a84f-4b58-89c2-24321bd993f6
 function Base.show(io::IO, m::MIME"text/html", mesh::Mesh)
 	buf = IOBuffer()
@@ -435,6 +427,17 @@ function Base.show(io::IO, m::MIME"text/html", mesh::Mesh)
 	Base.show(io, m, c)
 end
 
+# ╔═╡ 0cf431ee-5990-4ff8-9f0a-9713bb99bfd4
+mesh = Mesh(to_triangles(
+		Pyramid(
+			Elevated(Circle(radius=10.), 5.),
+			Cookie(r1=20., r2=5., n_circles=10)
+		); Δ = .05
+));
+
+# ╔═╡ 5fb74f1f-ad35-4ced-840a-db673a510a4b
+mesh
+
 # ╔═╡ 1e162676-d8bd-4152-898c-c50b0423e683
 # run(`f3d $test_file`)
 
@@ -468,7 +471,7 @@ version = "0.1.6"
 
 # ╔═╡ Cell order:
 # ╟─1b39ef9e-fa34-11ec-0ea1-21f472a01b4d
-# ╠═5fb74f1f-ad35-4ced-840a-db673a510a4b
+# ╟─5fb74f1f-ad35-4ced-840a-db673a510a4b
 # ╟─2c8523ba-2e71-4ec4-89de-19551025a74b
 # ╠═02b1fdae-26db-4f0f-972c-818a09da846d
 # ╠═d061a654-3ce0-46c0-a889-754ee54723b7
@@ -500,6 +503,7 @@ version = "0.1.6"
 # ╠═0d6288e9-51e8-47fe-a301-994dbcb6372f
 # ╠═47f40dd9-f490-447f-9c12-59f7edcb6c34
 # ╠═edf0e11d-a84f-4b58-89c2-24321bd993f6
+# ╠═0cf431ee-5990-4ff8-9f0a-9713bb99bfd4
 # ╠═1e162676-d8bd-4152-898c-c50b0423e683
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
