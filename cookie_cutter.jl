@@ -425,7 +425,7 @@ function Base.show(io::IO, m::MIME"text/html", mesh::Mesh)
 	</script>
 	""")
 	Base.show(io, m, c)
-end
+end; Base.show
 
 # ╔═╡ 0cf431ee-5990-4ff8-9f0a-9713bb99bfd4
 mesh = Mesh(to_triangles(
@@ -456,6 +456,11 @@ Mesh(to_triangles(
 
 # ╔═╡ 1e162676-d8bd-4152-898c-c50b0423e683
 # run(`f3d $test_file`)
+
+# ╔═╡ 0d74557a-6d3d-4666-b4dd-78ddc4513889
+md"""
+---
+"""
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -517,11 +522,12 @@ version = "0.1.6"
 # ╟─cc1f656a-afd6-43ee-b9b6-5eaac45528cd
 # ╠═2ce2332e-7603-4de4-9323-5603aabc8df2
 # ╠═0d6288e9-51e8-47fe-a301-994dbcb6372f
-# ╠═47f40dd9-f490-447f-9c12-59f7edcb6c34
-# ╠═edf0e11d-a84f-4b58-89c2-24321bd993f6
+# ╟─edf0e11d-a84f-4b58-89c2-24321bd993f6
 # ╠═0cf431ee-5990-4ff8-9f0a-9713bb99bfd4
-# ╠═0bf22528-1f22-4ad4-bb91-6e2321c5bcde
-# ╠═b02a5bd2-f173-4b85-9387-6456158de2b1
+# ╟─0bf22528-1f22-4ad4-bb91-6e2321c5bcde
+# ╟─b02a5bd2-f173-4b85-9387-6456158de2b1
 # ╠═1e162676-d8bd-4152-898c-c50b0423e683
+# ╟─0d74557a-6d3d-4666-b4dd-78ddc4513889
+# ╠═47f40dd9-f490-447f-9c12-59f7edcb6c34
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
