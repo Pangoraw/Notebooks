@@ -50,7 +50,7 @@ md"""
 	|ϵ  |$(Child(:ϵ, Slider(.1:.1:2., default=1.)))|
 	|λ₁  |$(Child(:λ₁, Slider(0:.1:2., default=1.)))|
 	|λ₂  |$(Child(:λ₂, Slider(0:.1:2., default=1.)))|
-	|`n_iters`  |$(Child(:n_iters, Slider(.1:.1:2., default=1.)))|
+	|`n_iters`  |$(Child(:n_iters, Slider(0:100, default=10)))|
 	""")
 end
 
@@ -74,8 +74,11 @@ function sinkhorn_unbalanced(
 		b = (ν ./ b) .^ (λ₂ / (ϵ + λ₂))
 	end
 
-	return Diagonal(a) * K * Diagonal(b)
+	return a .* K .* b'
 end
+
+# ╔═╡ 4eadb5e1-ce15-4479-ad5d-ba7419f9796d
+[1; 2] .* randn(2,3)
 
 # ╔═╡ ba56c7c7-8cca-4c53-ac95-175792cbec62
 (; Nx, Ny, ϵ, λ₁, λ₂, n_iters) = params
@@ -120,11 +123,10 @@ let
 	
 	# Y = [1.49611    1.35492    0.283328
 	#      -0.677645  -0.373713  -0.622252]
-
 	
-	C = pairwise(sqeuclidean, X, Y)
+	C = pairwise(euclidean, X, Y)
 	μ = fill(1/size(X, 2), size(X, 2))
-	ν = fill(1/size(Y, 1), size(Y, 2))
+	ν = fill(1/size(Y, 2), size(Y, 2))
 	γ = sinkhorn_unbalanced(μ, ν, C, ϵ, λ₁, λ₂, n_iters)
 
 	scatter(eachrow(X)...; label="μ")
@@ -1185,6 +1187,7 @@ version = "1.4.1+0"
 # ╟─d0654317-7280-4b6f-8e1e-e843826e440c
 # ╟─d1ee407b-c8f2-41e5-b457-eb4252e49c62
 # ╠═5b0137b7-490d-4f4b-868c-971d675f5f00
+# ╠═4eadb5e1-ce15-4479-ad5d-ba7419f9796d
 # ╟─ba56c7c7-8cca-4c53-ac95-175792cbec62
 # ╠═4bd504ad-dd05-478b-82b1-f677af826337
 # ╠═55399257-cf1e-40c0-8956-76cef74b001c
