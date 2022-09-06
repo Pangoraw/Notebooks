@@ -26,5 +26,4 @@
  - [tikzjax](https://pangoraw.github.io/Notebooks/tikzjax)
  - [unbalanced_optimal_transport](https://pangoraw.github.io/Notebooks/unbalanced_optimal_transport)
  - [uniform_distribution_sphere](https://pangoraw.github.io/Notebooks/uniform_distribution_sphere)
- - [update_readme](https://pangoraw.github.io/Notebooks/update_readme)
 <!-- END_LINKS -->

@@ -17,7 +17,7 @@ end
 
 function build_link_list()
     paths = filter(readdir()) do path
-        endswith(path, ".jl") && basename(path) != "./update_readme.jl"
+        endswith(path, ".jl") && basename(path) != "update_readme.jl"
     end
 
     map(paths) do path
