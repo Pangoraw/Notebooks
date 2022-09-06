@@ -21,6 +21,7 @@ function build_link_list()
     end
 
     map(paths) do path
+        path = replace(path, ".jl" => "")
         " - [$path](https://pangoraw.github.io/Notebooks/$(path))"
     end
 end
