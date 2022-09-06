@@ -21,7 +21,7 @@ function build_link_list()
     end
 
     map(paths) do path
-        " - [$path](https://pangoraw.github.io/notebooks/$(path))"
+        " - [$path](https://pangoraw.github.io/Notebooks/$(path))"
     end
 end
 
