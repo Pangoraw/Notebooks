@@ -48,8 +48,8 @@ md"""
 	|Nx   |$(Child(:Nx, Slider(2:100, default=5)))|
 	|Ny   |$(Child(:Ny, Slider(2:100, default=7)))|
 	|ϵ  |$(Child(:ϵ, Slider(.1:.1:2., default=1.)))|
-	|λ₁  |$(Child(:λ₁, Slider(0:.1:2., default=1.)))|
-	|λ₂  |$(Child(:λ₂, Slider(0:.1:2., default=1.)))|
+	|λ₁  |$(Child(:λ₁, Slider(0:.1:200., default=200.)))|
+	|λ₂  |$(Child(:λ₂, Slider(0:.1:200., default=200.)))|
 	|`n_iters`  |$(Child(:n_iters, Slider(0:100, default=10)))|
 	""")
 end
@@ -86,7 +86,7 @@ end
 # ╔═╡ 4bd504ad-dd05-478b-82b1-f677af826337
 X, Y = @use_memo([Nx,Ny]) do
 	X = randn(2, Nx)
-	μy = [1., 2.]
+	μy = [2., 2.]
 	Y = μy .+ randn(2, Ny)
 	X,Y
 end
@@ -114,26 +114,51 @@ end
 
 # ╔═╡ d1ee407b-c8f2-41e5-b457-eb4252e49c62
 # ╠═╡ show_logs = false
-let
-	# X = randn(2, 7)
-	# Y = randn(2, 3)
-
-	# X = [-1.0489   0.462716   0.174114  -0.207486  -0.595417   0.0160011   0.135865
-	#      1.40573  1.38541   -0.142651   0.342893  -0.47598   -0.178235   -0.86198]
+begin
+	γ, plt = let
+		# X = randn(2, 7)
+		# Y = randn(2, 3)
 	
-	# Y = [1.49611    1.35492    0.283328
-	#      -0.677645  -0.373713  -0.622252]
+		# X = [-1.0489   0.462716   0.174114  -0.207486  -0.595417   0.0160011   0.135865
+		#      1.40573  1.38541   -0.142651   0.342893  -0.47598   -0.178235   -0.86198]
+		
+		# Y = [1.49611    1.35492    0.283328
+		#      -0.677645  -0.373713  -0.622252]
+		
+		C = pairwise(euclidean, X, Y)
+		μ = fill(1/size(X, 2), size(X, 2))
+		ν = fill(1/size(Y, 2), size(Y, 2))
+		γ = sinkhorn_unbalanced(μ, ν, C, ϵ, λ₁, λ₂, n_iters)
 	
-	C = pairwise(euclidean, X, Y)
-	μ = fill(1/size(X, 2), size(X, 2))
-	ν = fill(1/size(Y, 2), size(Y, 2))
-	γ = sinkhorn_unbalanced(μ, ν, C, ϵ, λ₁, λ₂, n_iters)
-
-	scatter(eachrow(X)...; label="μ")
-	scatter!(eachrow(Y)...; label="ν")
-
-	draw_quiver!(X, Y, γ)
+		scatter(eachrow(X)...; label="μ")
+		scatter!(eachrow(Y)...; label="ν")
+	
+		γ, draw_quiver!(X, Y, γ)
+	end
+	plt
 end
+
+# ╔═╡ 155156a2-65dd-48e1-9aec-178d490af007
+let
+	heatmap(Nx * γ)
+	title!("Transport Plan γ")
+end
+
+# ╔═╡ f3562352-14e6-417c-a175-968e69afa0fc
+let
+	scatter(sum(eachcol(γ)), ylims = (0., .2), label="γ1")
+	plot!([0., Nx], [1/Nx, 1/Nx], style=:dash, label="Uniform")
+	title!("As the λ decreases, the marginal\nis further from the uniform")
+end
+
+# ╔═╡ 16aae54c-00f9-449b-a160-b4b8568e8c9d
+let
+	a, b = sum(eachrow(γ)) |> extrema
+	b - a
+end
+
+# ╔═╡ 77584806-9ba1-4010-a6f1-583c91a8c7e7
+sum(γ)
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -159,7 +184,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.0"
 manifest_format = "2.0"
-project_hash = "a592af325201bfa5b1b85b0f4b5a2c75d4903999"
+project_hash = "479db55e90f1b95f6760ba3af9af06f8c9e943d2"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -1186,6 +1211,10 @@ version = "1.4.1+0"
 # ╟─e7f9540b-30fc-438a-b8e5-a81b0f32a8a0
 # ╟─d0654317-7280-4b6f-8e1e-e843826e440c
 # ╟─d1ee407b-c8f2-41e5-b457-eb4252e49c62
+# ╟─155156a2-65dd-48e1-9aec-178d490af007
+# ╠═f3562352-14e6-417c-a175-968e69afa0fc
+# ╠═16aae54c-00f9-449b-a160-b4b8568e8c9d
+# ╠═77584806-9ba1-4010-a6f1-583c91a8c7e7
 # ╠═5b0137b7-490d-4f4b-868c-971d675f5f00
 # ╠═4eadb5e1-ce15-4479-ad5d-ba7419f9796d
 # ╟─ba56c7c7-8cca-4c53-ac95-175792cbec62
