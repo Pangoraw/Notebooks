@@ -21,9 +21,11 @@
  - [procrustes](https://pangoraw.github.io/Notebooks/procrustes)
  - [rotation](https://pangoraw.github.io/Notebooks/rotation)
  - [rotation_invariant_ot](https://pangoraw.github.io/Notebooks/rotation_invariant_ot)
+ - [shapes](https://pangoraw.github.io/Notebooks/shapes)
  - [sphere_projection](https://pangoraw.github.io/Notebooks/sphere_projection)
  - [testset](https://pangoraw.github.io/Notebooks/testset)
  - [tikzjax](https://pangoraw.github.io/Notebooks/tikzjax)
  - [unbalanced_optimal_transport](https://pangoraw.github.io/Notebooks/unbalanced_optimal_transport)
  - [uniform_distribution_sphere](https://pangoraw.github.io/Notebooks/uniform_distribution_sphere)
+ - [zmq_socket](https://pangoraw.github.io/Notebooks/zmq_socket)
 <!-- END_LINKS -->
