@@ -18,7 +18,7 @@ end
 using Plots, LinearAlgebra, Distributions, Statistics, PlutoUI
 
 # ╔═╡ 22978a0f-bf8e-4dca-8455-9bab33c16fbc
-@bind σ Slider(0:.1:1.4)
+@bind σ Slider(0:.1:1.4, default = 1.2)
 
 # ╔═╡ 1e4620e1-245b-4af5-ba7b-a34e84842df0
 N = 1_000
