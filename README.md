@@ -10,6 +10,7 @@
  - [deno_updater](https://pangoraw.github.io/Notebooks/deno_updater)
  - [exact_ot](https://pangoraw.github.io/Notebooks/exact_ot)
  - [gromov_wasserstein](https://pangoraw.github.io/Notebooks/gromov_wasserstein)
+ - [incorporator](https://pangoraw.github.io/Notebooks/incorporator)
  - [less](https://pangoraw.github.io/Notebooks/less)
  - [light_dark_theme](https://pangoraw.github.io/Notebooks/light_dark_theme)
  - [notebook_network_viewer](https://pangoraw.github.io/Notebooks/notebook_network_viewer)
