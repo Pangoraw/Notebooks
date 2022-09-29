@@ -138,17 +138,18 @@ begin
 	plt
 end
 
+# ╔═╡ f3562352-14e6-417c-a175-968e69afa0fc
+let
+	dist = sum(eachcol(γ))
+	scatter(dist, ylims = (0., max(2/Nx, 1.2maximum(dist))), label="γ1")
+	plot!([0., Nx], [1/Nx, 1/Nx], style=:dash, label="Uniform")
+	title!("As the λ decreases, the marginal\nis further from the uniform")
+end
+
 # ╔═╡ 155156a2-65dd-48e1-9aec-178d490af007
 let
 	heatmap(Nx * γ)
 	title!("Transport Plan γ")
-end
-
-# ╔═╡ f3562352-14e6-417c-a175-968e69afa0fc
-let
-	scatter(sum(eachcol(γ)), ylims = (0., .2), label="γ1")
-	plot!([0., Nx], [1/Nx, 1/Nx], style=:dash, label="Uniform")
-	title!("As the λ decreases, the marginal\nis further from the uniform")
 end
 
 # ╔═╡ 16aae54c-00f9-449b-a160-b4b8568e8c9d
@@ -1211,8 +1212,8 @@ version = "1.4.1+0"
 # ╟─e7f9540b-30fc-438a-b8e5-a81b0f32a8a0
 # ╟─d0654317-7280-4b6f-8e1e-e843826e440c
 # ╟─d1ee407b-c8f2-41e5-b457-eb4252e49c62
-# ╟─155156a2-65dd-48e1-9aec-178d490af007
 # ╠═f3562352-14e6-417c-a175-968e69afa0fc
+# ╟─155156a2-65dd-48e1-9aec-178d490af007
 # ╠═16aae54c-00f9-449b-a160-b4b8568e8c9d
 # ╠═77584806-9ba1-4010-a6f1-583c91a8c7e7
 # ╠═5b0137b7-490d-4f4b-868c-971d675f5f00
