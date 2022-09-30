@@ -1,10 +1,10 @@
 # notebooks library
 
 <!-- LINKS -->
+ - [OperationalTransform](https://pangoraw.github.io/Notebooks/OperationalTransform)
  - [barlow](https://pangoraw.github.io/Notebooks/barlow)
  - [button_effect](https://pangoraw.github.io/Notebooks/button_effect)
  - [cohen_kappa_score](https://pangoraw.github.io/Notebooks/cohen_kappa_score)
- - [cookie_cutter](https://pangoraw.github.io/Notebooks/cookie_cutter)
  - [cookie_cutter_2d](https://pangoraw.github.io/Notebooks/cookie_cutter_2d)
  - [cycle](https://pangoraw.github.io/Notebooks/cycle)
  - [deno_updater](https://pangoraw.github.io/Notebooks/deno_updater)
@@ -23,6 +23,7 @@
  - [procrustes](https://pangoraw.github.io/Notebooks/procrustes)
  - [rotation](https://pangoraw.github.io/Notebooks/rotation)
  - [rotation_invariant_ot](https://pangoraw.github.io/Notebooks/rotation_invariant_ot)
+ - [shapes](https://pangoraw.github.io/Notebooks/shapes)
  - [sphere_projection](https://pangoraw.github.io/Notebooks/sphere_projection)
  - [testset](https://pangoraw.github.io/Notebooks/testset)
  - [tikzjax](https://pangoraw.github.io/Notebooks/tikzjax)
