@@ -9,6 +9,7 @@
  - [cycle](https://pangoraw.github.io/Notebooks/cycle)
  - [deno_updater](https://pangoraw.github.io/Notebooks/deno_updater)
  - [exact_ot](https://pangoraw.github.io/Notebooks/exact_ot)
+ - [expected_error](https://pangoraw.github.io/Notebooks/expected_error)
  - [gromov_wasserstein](https://pangoraw.github.io/Notebooks/gromov_wasserstein)
  - [incorporator](https://pangoraw.github.io/Notebooks/incorporator)
  - [less](https://pangoraw.github.io/Notebooks/less)
