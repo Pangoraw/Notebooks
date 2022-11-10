@@ -73,7 +73,7 @@ md"""
 """
 Tries to find a feasible solution \$(f, g)\$ to the dual problem given a plan \$P\$.
 
- - `P` (the transport plan) is an adjacency matrix of the bi-partite network.
+ - `G` (the graph associated with the transport plan) is an adjacency matrix of the bi-partite network.
  - `C` is the cost matrix
 """
 function find_feasible_dual(G, C)
@@ -124,7 +124,7 @@ function find_suboptimal_edge(f, g, C)
 	for i in eachindex(f),
 		j in eachindex(g)
 
-		if f[i] + g[j] - C[i, j] > 1e-14
+		@inbounds if f[i] + g[j] - C[i, j] > 1e-14
 			return CartesianIndex(i, j)
 		end
 	end
@@ -141,9 +141,9 @@ function collect_cycle(G, P, edge)
 	n = size(G, 1)
 
 	costs = Float64[]
-	indices = []
+	indices = CartesianIndex[]
 
-	stack = []
+	stack = Int[]
 	explored = Set{Int}()
 	
 	function dfs(i)
@@ -341,6 +341,7 @@ let
 	b = fill(1/nb, nb)
 	C = randn(na, nb)
 
+	emd2
 	b1 = @BenchmarkTools.benchmark emd2($a,$b,$C)
 	b2 = @BenchmarkTools.benchmark OptimalTransport.emd2($a, $b, $C, GLPK.Optimizer())
 	
