@@ -14,6 +14,7 @@
  - [incorporator](https://pangoraw.github.io/Notebooks/incorporator)
  - [less](https://pangoraw.github.io/Notebooks/less)
  - [light_dark_theme](https://pangoraw.github.io/Notebooks/light_dark_theme)
+ - [network_simplex](https://pangoraw.github.io/Notebooks/network_simplex)
  - [notebook_network_viewer](https://pangoraw.github.io/Notebooks/notebook_network_viewer)
  - [observable](https://pangoraw.github.io/Notebooks/observable)
  - [ot_color_hist](https://pangoraw.github.io/Notebooks/ot_color_hist)
