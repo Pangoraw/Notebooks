@@ -21,8 +21,9 @@ f(X) = sum(X[i,i] for i in 1:size(X,1))
 
 # ╔═╡ 0df4eb50-4d19-4a68-9b65-718a1e1d86db
 function gradient(f, X)
-	XX = reshape([X...], size(X)...)
-	∇ = Symbolics.gradient(f(XX), [X...])
+	vars = [X...]
+	XX = reshape(vars, size(X)...)
+	∇ = Symbolics.gradient(f(XX), vars)
 	reshape(∇, size(X))
 end
 
