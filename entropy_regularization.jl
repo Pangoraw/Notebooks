@@ -100,7 +100,6 @@ begin
 			markercolor=model(X[:,3N+i])[begin] < .5 ? :green : :blue)
 	end
 
-	title!("λ = $λ")
 	plot!()
 end
 
