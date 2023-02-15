@@ -4,19 +4,108 @@
 using Markdown
 using InteractiveUtils
 
+# This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
+macro bind(def, element)
+    quote
+        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
+        local el = $(esc(element))
+        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
+        el
+    end
+end
+
+# ╔═╡ 6981cd82-1abd-4c5f-8dea-4167c657c32b
+using PlutoUI
+
 # ╔═╡ 723eca70-ac6e-11ed-3b6f-f38d516859fe
 using Plots
+
+# ╔═╡ 5d0419cf-e0ed-43f7-a0e1-7c0edd28b5e4
+md"""
+# Hyperplanes on the Poincaré Ball
+"""
+
+# ╔═╡ d4519d13-0f15-41c4-b410-b4146378461a
+md"""
+An hyperplane in $\mathbb R^n$ can be written as a normal vector $a$ and a scalar shift $b$:
+
+```math
+H_{a,b} = \left\{x\in\mathbb R^n:\langle a,x\rangle - b = 0\right\}\text{ where } a\in\mathbb R^n\backslash\{\mathbf 0\}, \text{ and } b\in\mathbb R.
+```
+This can be reformulated as $\tilde H_{a,p} = H_{a,\langle a,p\rangle}$:
+```math
+\tilde H_{a, p} = \left\{x\in\mathbb R^n : \langle -p+x,a\rangle = 0\right\}\text{ where }p\in\mathbb R^n, a\in\mathbb R^n.
+```
+The Poincaré hyperplane can naturally be defined by replacing $+$ with $\oplus$.
+For $p\in\mathbb D^n_c$, $a\in T_p\mathbb D^n_c\backslash\{\mathbf 0\}$, we defined the Poincaré hyperplanes as:
+
+```math
+\tilde H^c_{a,p} :=\left\{x\in\mathbb D^n_c:\langle\log_p^c(x), a\rangle = 0\right\} = \exp_p^c(\{a\}^\bot) = \left\{x\in\mathbb D^n_c:\langle -p\oplus x, a\rangle = 0\right\}
+```
+
+"""
+
+# ╔═╡ 38281037-3bd9-4c5c-a9a6-078aa957238d
+@bind hθ Slider(0:.1:2π, show_value = true)
+
+# ╔═╡ 7f45c19e-5439-45d4-8a76-82019530c2c3
+struct Hyperplane{D,F<:AbstractFloat}
+	a::Vector{F} # The normal
+	p::Vector{F} # The point
+end
+
+# ╔═╡ 50d1f861-aabc-4c46-9acc-5045cd4aa4c2
+x ⋅ y = sum(x .* y)
+
+# ╔═╡ 67c5ab9e-5d9d-443a-af0c-f381aa7f91ce
+
+
+# ╔═╡ ed4d338a-4a80-49a3-98a2-a2086113974b
+QQ = [0.3, .2]
+
+# ╔═╡ fe707a80-269b-4eae-894e-b28ef2a48037
+PP = [0., 1.]
+
+# ╔═╡ b45df8b0-4056-433c-9d94-9c98dac2a57c
+md"""
+# Hyperbolic multiclass logistic regression
+"""
+
+# ╔═╡ 639b0415-8240-47d1-a559-4733e3733e10
+
+
+# ╔═╡ ca424f18-7b5e-436a-8a61-1f9516a9fecf
+struct HyperbolicLayer
+	planes::Vector{Hyperplane}
+end
+
+# ╔═╡ e3e5b0e6-3dc8-49fb-b57f-661387baa6ca
+function evaluate(hl::HyperbolicLayer, x)
+	ps = map(h->evaluate(h,x),hl.planes)
+	ps / sum(ps)
+end
+
+# ╔═╡ ee2aca92-2e7f-4bff-b776-d96fd25b3486
+md"""
+# The Hyperbolic Geodesic on the Poincaré Ball
+"""
 
 # ╔═╡ 7ae0df56-7257-444b-82ec-806c08ef9fd0
 md"""
 Algorithm from [Wikipedia](https://en.wikipedia.org/wiki/Poincar%C3%A9_disk_model#Compass_and_straightedge_construction).
 """
 
-# ╔═╡ f7a25b3b-0882-40e2-82ed-d126979f7d87
-Q = [-.8,.3]
+# ╔═╡ 97648f11-34e6-4daa-a971-e2c05fac814d
+import PyPlot
+
+# ╔═╡ ecf34087-6469-4744-adbb-bb590d0e2ce2
+pyplot()
+
+# ╔═╡ 0afc9af3-77d0-48a8-9da1-de6f640e61df
+@bind r Slider(0.1:10., default = 1., show_value = true)
 
 # ╔═╡ 186882c0-be14-407c-98ef-aded2eaa79a7
-P = [0.29, -0.5]
+P = [0.8, -0.5]
 
 # ╔═╡ eb09eb96-eb9b-4b08-81e2-490046ce2175
 cartesian((θ, r),) = [cos(θ) * r, sin(θ) * r]
@@ -78,14 +167,160 @@ angle(a,b) = angle(b - a)
 angle(a) = polar(a)[1]
 end
 
-# ╔═╡ e556387f-ac13-4d2d-ac8d-377e5872d733
-angle(P)
-
-# ╔═╡ 01fa3712-4216-4240-aa09-a2ef208a7e75
-angle(Q)
-
 # ╔═╡ 3ff68122-5f43-45ff-b8d8-2d0610422c24
-norm(X) = sqrt(sum(x->x^2, X))
+norm(X::Vector{F}) where {F} = sqrt(sum(x->x^2, X))::F
+
+# ╔═╡ 75a57ac6-2926-412c-9942-accf02b1e700
+function exp₀(v)
+	c = 1.
+	tanh(√(c) * norm(v)) * v / (√(c) * norm(v))
+end
+
+# ╔═╡ 7d59d880-f47d-4f68-bfa3-a2463b318c00
+function log₀(y)
+	c = 1.
+	atanh(√(c) * norm(y)) * y / (√(c) * norm(y))
+end
+
+# ╔═╡ 38498467-600a-4448-8242-a664192960eb
+function (r::Real ⊗ x)
+	c = 1.
+	exp₀(r * log₀(x))
+end
+
+# ╔═╡ 8c233a03-cc30-4ab4-9f67-f8241aafc1bb
+function (x ⊗ r::Real)
+	c = 1.
+	(1 / √(c)) * tanh(r * atanh(√(c) * norm(x))) * x / norm(x)
+end
+
+# ╔═╡ 864539ee-a8c1-45c3-9a65-fe00051d1341
+1.2 ⊗ QQ
+
+# ╔═╡ 4c228ff5-befc-43e2-91dc-b3197370fb56
+QQ ⊗ 1.2
+
+# ╔═╡ f7a25b3b-0882-40e2-82ed-d126979f7d87
+Q = [0.1,-.1] ⊗ r
+
+# ╔═╡ e3cc4043-9efc-43be-962f-71ec574ca51c
+function (x ⊕ y)
+	c = 1.
+	((1 + 2c * (x⋅y) + c * norm(y) ^ 2) * x + (1 - c * norm(x)^2) * y)/ (
+		1 + 2c * (x⋅y) + c^2 * norm(x)^2 * norm(y) ^ 2
+	)
+end
+
+# ╔═╡ 93893566-0f95-4b1f-8188-20d3fb72a048
+function side(h::Hyperplane, x)
+	(;a, p) = h
+	sign(((-p) ⊕ x) ⋅ a)
+end
+
+# ╔═╡ 1891edbc-7499-49a3-8af6-08635278ec37
+let
+	N = 30
+	θ = LinRange(0., 2π, N)
+	r = LinRange(0., 1., N)
+
+	h = Hyperplane{2,Float64}(cartesian([hθ, 1.]), [0.3, 0.3])
+	Z =  [Int(side(h, cartesian([t, R]))) for (t, R) in zip(θ,r)]
+
+	Plots.contour(
+		θ, r, (t,R) -> Int(side(h, cartesian([t, R]))),
+		proj = :polar,
+		label = nothing,
+	)
+
+	title!("Hyperbolic Hyperplane")
+	ylims!(0., 1.)
+end
+
+# ╔═╡ 2fda3ad1-3388-4342-bccf-e065d5f5da6b
+side(Hyperplane{2,Float64}([1., 0.], [0., 0.]), [-0.1, 0.])
+
+# ╔═╡ c9369f13-bfe2-4e90-ad5a-2ff14389f803
+function unit_speed_geodesic(x,v)
+	c = 1.
+	t -> x ⊕ (tanh(√(c) * t / 2) * v / (√(c) * norm(v)))
+end
+
+# ╔═╡ a8c546b7-3200-4f3a-bdef-2d6eb9fdb8e2
+function d(x, y)
+	c = 1.
+	(2 / √(c)) * atanh(√(c) * norm((-x) ⊕ y))
+end
+
+# ╔═╡ 32b1581b-7159-469b-b0f1-2abd309063b2
+d([0., 0.], [1., 0.])
+
+# ╔═╡ 7264b4bc-9aab-439b-9a51-7bbcf6cfd963
+d(P, Q)
+
+# ╔═╡ cbb02da7-3db0-4644-a8e5-2e1b11eae5fa
+x ⊖ y = x ⊕ (- y)
+
+# ╔═╡ 6eb44e7c-4aa2-465b-9806-04cb687da7ec
+QQ ⊖ QQ
+
+# ╔═╡ ff3b8668-5d52-47d9-8b3a-46e90f3fd044
+QQ ⊕ [0., 0.]
+
+# ╔═╡ 410d6b09-419d-424f-8d51-210200c8ef0e
+λ(p::Vector{F}) where F = (2 / (1 - norm(p) ^ 2))::F   
+
+# ╔═╡ 139241f4-67b2-4dfc-8852-0d9cf091e16e
+function evaluate(h::Hyperplane{D,F}, x) where {D,F}
+	(;a,p) = h
+	c = 1.
+
+	exp(
+		(λ(p) * norm(a) / √(c)) * asinh((2 * √(c) * (((-p) ⊕ x) ⋅ a)) / (1-c * norm((-p) ⊕ x)^2 * norm(a)))
+	)
+end
+
+# ╔═╡ 20edd12a-33aa-4de8-8ccd-211ac85cfd9c
+evaluate(
+	Hyperplane{2,Float64}([1., 0.], [0., 0.]),
+	[.99, 0.]
+)
+
+# ╔═╡ dc758153-04cb-4693-97a0-beac489880c2
+let
+	O = [0., 0.]
+	layer = HyperbolicLayer([
+		Hyperplane{2,Float64}(
+			cartesian([π, 1.]),
+			O,
+		),
+		Hyperplane{2,Float64}(
+			cartesian([π / 2, 1.]),
+			O,
+		),
+		Hyperplane{2,Float64}(
+			cartesian([-π / 5, 1.]),
+			[0.3, -0.5],
+		)
+	])
+
+	#P = [0., .7]
+	N = 20
+	θs = LinRange(0., 2π, 2*N)
+	R =  LinRange(0., .99, N)
+	p = Iterators.product(θs,R)
+	θs = first.(p)
+	R = last.(p)
+	
+	scatter(
+		θs, R, proj=:polar,
+		c = [
+			argmax(evaluate(layer, cartesian([t,r])))
+			for (t,r) in p
+		],
+		label = nothing,
+	)
+	title!("Hyperbolic Layer")
+end
 
 # ╔═╡ 1e59b978-385a-4b11-839f-a71b6b901c61
 function geo(P, Q, num_points = 20)
@@ -147,9 +382,13 @@ end
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee"
 
 [compat]
 Plots = "~1.38.5"
+PlutoUI = "~0.7.49"
+PyPlot = "~2.11.0"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -158,7 +397,13 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.9.0-beta4"
 manifest_format = "2.0"
-project_hash = "8ef83ebb58d0816e1240deb21fb2db6a4fcb73e1"
+project_hash = "922b7f5578dc60ef5adc1dec5ea39b6436996342"
+
+[[deps.AbstractPlutoDingetjes]]
+deps = ["Pkg"]
+git-tree-sha1 = "8eaf9f1b4921132a4cff3f36a1d9ba923b14a481"
+uuid = "6e696c72-6542-2067-7265-42206c756150"
+version = "1.1.4"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
@@ -233,6 +478,12 @@ version = "4.6.0"
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
 version = "1.0.2+0"
+
+[[deps.Conda]]
+deps = ["Downloads", "JSON", "VersionParsing"]
+git-tree-sha1 = "e32a90da027ca45d84678b826fffd3110bb3fc90"
+uuid = "8f4d0f93-b110-5947-807f-2305c1781a2d"
+version = "1.8.0"
 
 [[deps.Contour]]
 git-tree-sha1 = "d05d9e7b7aedff4e5b51a029dced05cfb6125781"
@@ -374,6 +625,24 @@ deps = ["Artifacts", "Cairo_jll", "Fontconfig_jll", "FreeType2_jll", "Glib_jll",
 git-tree-sha1 = "129acf094d168394e80ee1dc4bc06ec835e510a3"
 uuid = "2e76f6c2-a576-52d4-95c1-20adfe4de566"
 version = "2.8.1+1"
+
+[[deps.Hyperscript]]
+deps = ["Test"]
+git-tree-sha1 = "8d511d5b81240fc8e6802386302675bdf47737b9"
+uuid = "47d2ed2b-36de-50cf-bf87-49c2cf4b8b91"
+version = "0.0.4"
+
+[[deps.HypertextLiteral]]
+deps = ["Tricks"]
+git-tree-sha1 = "c47c5fa4c5308f27ccaac35504858d8914e102f9"
+uuid = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
+version = "0.9.4"
+
+[[deps.IOCapture]]
+deps = ["Logging", "Random"]
+git-tree-sha1 = "f7be53659ab06ddc986428d3a9dcc95f6fa6705a"
+uuid = "b5f81e59-6552-4d32-b1f0-c071b021bf89"
+version = "0.2.2"
 
 [[deps.IniFile]]
 git-tree-sha1 = "f550e6e32074c939295eb5ea6de31849ac2c9625"
@@ -541,6 +810,11 @@ git-tree-sha1 = "cedb76b37bc5a6c702ade66be44f831fa23c681e"
 uuid = "e6f89c97-d47a-5376-807f-9c37f3926c36"
 version = "1.0.0"
 
+[[deps.MIMEs]]
+git-tree-sha1 = "65f28ad4b594aebe22157d6fac869786a255b7eb"
+uuid = "6c6e2e6c-3030-632d-7369-2d6c69616d65"
+version = "0.1.4"
+
 [[deps.MacroTools]]
 deps = ["Markdown", "Random"]
 git-tree-sha1 = "42324d08725e200c23d4dfb549e0d5d89dede2d2"
@@ -680,6 +954,12 @@ git-tree-sha1 = "8ac949bd0ebc46a44afb1fdca1094554a84b086e"
 uuid = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 version = "1.38.5"
 
+[[deps.PlutoUI]]
+deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "FixedPointNumbers", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "MIMEs", "Markdown", "Random", "Reexport", "URIs", "UUIDs"]
+git-tree-sha1 = "eadad7b14cf046de6eb41f13c9275e5aa2711ab6"
+uuid = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+version = "0.7.49"
+
 [[deps.Preferences]]
 deps = ["TOML"]
 git-tree-sha1 = "47e5f437cc0e7ef2ce8406ce1e7e24d44915f88d"
@@ -689,6 +969,18 @@ version = "1.3.0"
 [[deps.Printf]]
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+
+[[deps.PyCall]]
+deps = ["Conda", "Dates", "Libdl", "LinearAlgebra", "MacroTools", "Serialization", "VersionParsing"]
+git-tree-sha1 = "62f417f6ad727987c755549e9cd88c46578da562"
+uuid = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
+version = "1.95.1"
+
+[[deps.PyPlot]]
+deps = ["Colors", "LaTeXStrings", "PyCall", "Sockets", "Test", "VersionParsing"]
+git-tree-sha1 = "f9d953684d4d21e947cb6d642db18853d43cb027"
+uuid = "d330b81b-6aea-500a-939a-2ce795aea3ee"
+version = "2.11.0"
 
 [[deps.Qt5Base_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Fontconfig_jll", "Glib_jll", "JLLWrappers", "Libdl", "Libglvnd_jll", "OpenSSL_jll", "Pkg", "Xorg_libXext_jll", "Xorg_libxcb_jll", "Xorg_xcb_util_image_jll", "Xorg_xcb_util_keysyms_jll", "Xorg_xcb_util_renderutil_jll", "Xorg_xcb_util_wm_jll", "Zlib_jll", "xkbcommon_jll"]
@@ -830,6 +1122,11 @@ git-tree-sha1 = "94f38103c984f89cf77c402f2a68dbd870f8165f"
 uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
 version = "0.9.11"
 
+[[deps.Tricks]]
+git-tree-sha1 = "6bac775f2d42a611cdfcd1fb217ee719630c4175"
+uuid = "410a4b4d-49e4-4fbc-ab6d-cb71b17b3775"
+version = "0.1.6"
+
 [[deps.URIs]]
 git-tree-sha1 = "ac00576f90d8a259f2c9d823e91d1de3fd44d348"
 uuid = "5c2747f8-b7ea-4ff2-ba2e-563bfd36b1d4"
@@ -852,6 +1149,11 @@ version = "0.4.1"
 git-tree-sha1 = "ca0969166a028236229f63514992fc073799bb78"
 uuid = "41fe7b60-77ed-43a1-b4f0-825fd5a5650d"
 version = "0.2.0"
+
+[[deps.VersionParsing]]
+git-tree-sha1 = "58d6e80b4ee071f5efd07fda82cb9fbe17200868"
+uuid = "81def892-9a0e-5fdd-b105-ffc91e053289"
+version = "1.3.0"
 
 [[deps.Wayland_jll]]
 deps = ["Artifacts", "Expat_jll", "JLLWrappers", "Libdl", "Libffi_jll", "Pkg", "XML2_jll"]
@@ -1085,13 +1387,49 @@ version = "1.4.1+0"
 """
 
 # ╔═╡ Cell order:
+# ╟─5d0419cf-e0ed-43f7-a0e1-7c0edd28b5e4
+# ╟─d4519d13-0f15-41c4-b410-b4146378461a
+# ╠═93893566-0f95-4b1f-8188-20d3fb72a048
+# ╠═38281037-3bd9-4c5c-a9a6-078aa957238d
+# ╠═1891edbc-7499-49a3-8af6-08635278ec37
+# ╠═2fda3ad1-3388-4342-bccf-e065d5f5da6b
+# ╠═7f45c19e-5439-45d4-8a76-82019530c2c3
+# ╠═50d1f861-aabc-4c46-9acc-5045cd4aa4c2
+# ╠═75a57ac6-2926-412c-9942-accf02b1e700
+# ╠═7d59d880-f47d-4f68-bfa3-a2463b318c00
+# ╠═67c5ab9e-5d9d-443a-af0c-f381aa7f91ce
+# ╠═c9369f13-bfe2-4e90-ad5a-2ff14389f803
+# ╠═a8c546b7-3200-4f3a-bdef-2d6eb9fdb8e2
+# ╠═8c233a03-cc30-4ab4-9f67-f8241aafc1bb
+# ╠═38498467-600a-4448-8242-a664192960eb
+# ╠═864539ee-a8c1-45c3-9a65-fe00051d1341
+# ╠═4c228ff5-befc-43e2-91dc-b3197370fb56
+# ╠═e3cc4043-9efc-43be-962f-71ec574ca51c
+# ╠═cbb02da7-3db0-4644-a8e5-2e1b11eae5fa
+# ╠═6eb44e7c-4aa2-465b-9806-04cb687da7ec
+# ╠═ed4d338a-4a80-49a3-98a2-a2086113974b
+# ╠═fe707a80-269b-4eae-894e-b28ef2a48037
+# ╠═ff3b8668-5d52-47d9-8b3a-46e90f3fd044
+# ╟─b45df8b0-4056-433c-9d94-9c98dac2a57c
+# ╠═639b0415-8240-47d1-a559-4733e3733e10
+# ╠═410d6b09-419d-424f-8d51-210200c8ef0e
+# ╠═20edd12a-33aa-4de8-8ccd-211ac85cfd9c
+# ╠═139241f4-67b2-4dfc-8852-0d9cf091e16e
+# ╠═ca424f18-7b5e-436a-8a61-1f9516a9fecf
+# ╠═e3e5b0e6-3dc8-49fb-b57f-661387baa6ca
+# ╟─dc758153-04cb-4693-97a0-beac489880c2
+# ╟─ee2aca92-2e7f-4bff-b776-d96fd25b3486
 # ╟─7ae0df56-7257-444b-82ec-806c08ef9fd0
+# ╠═6981cd82-1abd-4c5f-8dea-4167c657c32b
+# ╠═97648f11-34e6-4daa-a971-e2c05fac814d
 # ╠═723eca70-ac6e-11ed-3b6f-f38d516859fe
+# ╠═ecf34087-6469-4744-adbb-bb590d0e2ce2
+# ╠═0afc9af3-77d0-48a8-9da1-de6f640e61df
+# ╠═32b1581b-7159-469b-b0f1-2abd309063b2
+# ╠═7264b4bc-9aab-439b-9a51-7bbcf6cfd963
 # ╠═f7a25b3b-0882-40e2-82ed-d126979f7d87
-# ╠═e556387f-ac13-4d2d-ac8d-377e5872d733
-# ╠═01fa3712-4216-4240-aa09-a2ef208a7e75
 # ╠═186882c0-be14-407c-98ef-aded2eaa79a7
-# ╠═18775697-39e4-4aad-89d7-9d4b034ad525
+# ╟─18775697-39e4-4aad-89d7-9d4b034ad525
 # ╠═1e59b978-385a-4b11-839f-a71b6b901c61
 # ╠═eb09eb96-eb9b-4b08-81e2-490046ce2175
 # ╠═9443607c-0bbb-4617-a64b-63fa6a94c4c4
