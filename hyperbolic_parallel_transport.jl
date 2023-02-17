@@ -14,198 +14,45 @@ macro bind(def, element)
     end
 end
 
-# ╔═╡ 6981cd82-1abd-4c5f-8dea-4167c657c32b
-using PlutoUI
+# ╔═╡ 10fbb6c8-aea6-11ed-2a45-db063531048d
+using Plots, PlutoUI
 
-# ╔═╡ 723eca70-ac6e-11ed-3b6f-f38d516859fe
-using Plots
-
-# ╔═╡ 5d0419cf-e0ed-43f7-a0e1-7c0edd28b5e4
+# ╔═╡ b744dc30-1da1-4fc9-be91-d7f0da75e60c
 md"""
-# Hyperplanes on the Poincaré Ball
-"""
+# Hyperbolic parallel transport
 
-# ╔═╡ d4519d13-0f15-41c4-b410-b4146378461a
-md"""
-An hyperplane in $\mathbb R^n$ can be written as a normal vector $a$ and a scalar shift $b$:
+Given a point $x\in T_\mathbf 0\mathcal M^d_c$, it can be transported to the tangent space of another point $p\in\mathcal M^d_c$ using the following equation:
 
 ```math
-H_{a,b} = \left\{x\in\mathbb R^n:\langle a,x\rangle - b = 0\right\}\text{ where } a\in\mathbb R^n\backslash\{\mathbf 0\}, \text{ and } b\in\mathbb R.
-```
-This can be reformulated as $\tilde H_{a,p} = H_{a,\langle a,p\rangle}$:
-```math
-\tilde H_{a, p} = \left\{x\in\mathbb R^n : \langle -p+x,a\rangle = 0\right\}\text{ where }p\in\mathbb R^n, a\in\mathbb R^n.
-```
-The Poincaré hyperplane can naturally be defined by replacing $+$ with $\oplus$.
-For $p\in\mathbb D^n_c$, $a\in T_p\mathbb D^n_c\backslash\{\mathbf 0\}$, we defined the Poincaré hyperplanes as:
-
-```math
-\tilde H^c_{a,p} :=\left\{x\in\mathbb D^n_c:\langle\log_p^c(x), a\rangle = 0\right\} = \exp_p^c(\{a\}^\bot) = \left\{x\in\mathbb D^n_c:\langle -p\oplus x, a\rangle = 0\right\}
+	P^c_{\mathbf 0\rightarrow p}(x) = \log^c_x(x\oplus_c\exp^c_\mathbf 0(v)) = \frac{\lambda_\mathbf 0^c}{\lambda_x^c}v.
 ```
 
+with $P^c_{\mathbf 0\rightarrow p} : T_\mathbf 0\mathcal M^d_c\rightarrow T_p\mathcal M_c^d$ and $\lambda ^c_p = 1 / (2 - c\lVert p\rVert^2)$ is the conformal factor at $p$.
+
 """
 
-# ╔═╡ 38281037-3bd9-4c5c-a9a6-078aa957238d
-@bind hθ Slider(0:.1:2π, show_value = true)
+# ╔═╡ 34ad4c2c-0025-45e6-a656-e4adcd2ea429
+@bind θ Slider(0:.1:2π, default=3π/4)
 
-# ╔═╡ 7f45c19e-5439-45d4-8a76-82019530c2c3
-struct Hyperplane{D,F<:AbstractFloat}
-	a::Vector{F} # The normal
-	p::Vector{F} # The point
+# ╔═╡ 5ce34272-add4-42c2-9f63-95ad273b3dce
+λ((θ, r)) = 1 / (2 - r^2)
+
+# ╔═╡ fddca860-84be-453f-9f0f-a1a867f3d937
+polar(x) = [atan(x[2], x[1]), sqrt(sum(x -> x^2, x))]
+
+# ╔═╡ 90430697-7e00-42eb-b388-af4e0a88f2d6
+function P₀ₚ(x, p)
+	λ₀ = 1/2
+	x .* λ₀ / λ(polar(p))
 end
 
-# ╔═╡ 50d1f861-aabc-4c46-9acc-5045cd4aa4c2
-x ⋅ y = sum(x .* y)
-
-# ╔═╡ 67c5ab9e-5d9d-443a-af0c-f381aa7f91ce
-
-
-# ╔═╡ ed4d338a-4a80-49a3-98a2-a2086113974b
-QQ = [0.3, .2]
-
-# ╔═╡ fe707a80-269b-4eae-894e-b28ef2a48037
-PP = [0., 1.]
-
-# ╔═╡ b45df8b0-4056-433c-9d94-9c98dac2a57c
-md"""
-# Hyperbolic multiclass logistic regression
-"""
-
-# ╔═╡ 639b0415-8240-47d1-a559-4733e3733e10
-md"""
-Based on the hyperplane definition above, one can define an hyperbolic multi-class logistic regression.
-"""
-
-# ╔═╡ ca424f18-7b5e-436a-8a61-1f9516a9fecf
-struct HyperbolicLayer
-	planes::Vector{Hyperplane}
-end
-
-# ╔═╡ e3e5b0e6-3dc8-49fb-b57f-661387baa6ca
-function evaluate(hl::HyperbolicLayer, x)
-	ps = map(h->evaluate(h,x),hl.planes)
-	ps / sum(ps)
-end
-
-# ╔═╡ ee2aca92-2e7f-4bff-b776-d96fd25b3486
-md"""
-# The Hyperbolic Geodesic on the Poincaré Ball
-"""
-
-# ╔═╡ 7ae0df56-7257-444b-82ec-806c08ef9fd0
-md"""
-Algorithm from [Wikipedia](https://en.wikipedia.org/wiki/Poincar%C3%A9_disk_model#Compass_and_straightedge_construction).
-"""
-
-# ╔═╡ 97648f11-34e6-4daa-a971-e2c05fac814d
-import PyPlot
-
-# ╔═╡ ecf34087-6469-4744-adbb-bb590d0e2ce2
-pyplot()
-
-# ╔═╡ 0afc9af3-77d0-48a8-9da1-de6f640e61df
-@bind r Slider(0.1:10., default = 1., show_value = true)
-
-# ╔═╡ 186882c0-be14-407c-98ef-aded2eaa79a7
-P = [0.8, -0.5]
-
-# ╔═╡ eb09eb96-eb9b-4b08-81e2-490046ce2175
-cartesian((θ, r),) = [cos(θ) * r, sin(θ) * r]
-
-# ╔═╡ 9443607c-0bbb-4617-a64b-63fa6a94c4c4
-inverse((x,y),) = cartesian([atan(y,x), 1/max(eps(), sqrt(x^2+y^2))])
-
-# ╔═╡ 486c85be-159c-40dc-9fe9-8e8730375bae
-polar((x,y),) = [atan(y,x), sqrt(x^2 + y^2)]
-
-# ╔═╡ 6a952c82-d774-4058-8ac9-5b2906a1747f
-function midpoint(P, P′)
-	D = P′ - P
-	θ, r = polar(D)
-	P .+ cartesian([θ, r/2])
-end
-
-# ╔═╡ b95b91d8-fd03-4c8f-be2e-f385909b39ac
-begin
-struct Line
-	origin
-	θ
-end
-function Line(p::Vector, q::Vector)
-	d = q - p
-	Line(p, polar(d)[1])
-end
-end
-
-# ╔═╡ 9ac37641-5e76-46b3-a36e-e56ba74d0957
-perpendicular(s::Line) = Line(s.origin, s.θ + π/2)
-
-# ╔═╡ 8ef11288-ccd0-42c5-b1d8-17d151a40d65
-function slope(line)
-	tan(line.θ)
-end
-
-# ╔═╡ 4d6c568a-399e-4bd2-b5f6-30210c8c4773
-function intercept(line)
-	x, y = line.origin
-	dy = x * tan(-line.θ)
-	y + dy
-end
-
-# ╔═╡ af911670-48af-411b-9a4a-7df22cd82d27
-function intersects(l1, l2)
-	a1 = slope(l1)
-	a2 = slope(l2)
-	b1 = intercept(l1)
-	b2 = intercept(l2)
-
-	x = (b2 - b1) / (a1 - a2)
-	[x, a1 * x + b1]
-end
-
-# ╔═╡ c5845cbe-8486-467c-a421-ce43b2fdf1c7
-begin
-angle(a,b) = angle(b - a)
-angle(a) = polar(a)[1]
-end
-
-# ╔═╡ 3ff68122-5f43-45ff-b8d8-2d0610422c24
+# ╔═╡ 78d68c72-6e6a-4101-8bde-6c8d2a4fedc6
 norm(X::Vector{F}) where {F} = sqrt(sum(x->x^2, X))::F
 
-# ╔═╡ 75a57ac6-2926-412c-9942-accf02b1e700
-function exp₀(v)
-	c = 1.
-	tanh(√(c) * norm(v)) * v / (√(c) * norm(v))
-end
+# ╔═╡ 021d0604-9b9e-4280-b585-9d7979c472c9
+x ⋅ y = sum(x .* y)
 
-# ╔═╡ 7d59d880-f47d-4f68-bfa3-a2463b318c00
-function log₀(y)
-	c = 1.
-	atanh(√(c) * norm(y)) * y / (√(c) * norm(y))
-end
-
-# ╔═╡ 38498467-600a-4448-8242-a664192960eb
-function (r::Real ⊗ x)
-	c = 1.
-	exp₀(r * log₀(x))
-end
-
-# ╔═╡ 8c233a03-cc30-4ab4-9f67-f8241aafc1bb
-function (x ⊗ r::Real)
-	c = 1.
-	(1 / √(c)) * tanh(r * atanh(√(c) * norm(x))) * x / norm(x)
-end
-
-# ╔═╡ 864539ee-a8c1-45c3-9a65-fe00051d1341
-1.2 ⊗ QQ
-
-# ╔═╡ 4c228ff5-befc-43e2-91dc-b3197370fb56
-QQ ⊗ 1.2
-
-# ╔═╡ f7a25b3b-0882-40e2-82ed-d126979f7d87
-Q = [0.1,-.1] ⊗ r
-
-# ╔═╡ e3cc4043-9efc-43be-962f-71ec574ca51c
+# ╔═╡ 2ab241b6-fff6-489a-9260-bfd3d3c781e6
 function (x ⊕ y)
 	c = 1.
 	((1 + 2c * (x⋅y) + c * norm(y) ^ 2) * x + (1 - c * norm(x)^2) * y)/ (
@@ -213,178 +60,49 @@ function (x ⊕ y)
 	)
 end
 
-# ╔═╡ 93893566-0f95-4b1f-8188-20d3fb72a048
-function side(h::Hyperplane, x)
-	(;a, p) = h
-	sign(((-p) ⊕ x) ⋅ a)
+# ╔═╡ dae71632-c77a-490e-a606-ba3835d57a80
+function expₚ(v, x)
+	x ⊕ (tanh(λ(polar(x)) * norm(v) / 2) * v / norm(v))
 end
 
-# ╔═╡ 1891edbc-7499-49a3-8af6-08635278ec37
+# ╔═╡ 67826715-57e9-44cc-9c0e-78064e44840b
+cartesian((θ, r)) = [cos(θ) * r, sin(θ) * r]
+
+# ╔═╡ 12155fa2-138a-43ef-b680-2756ef6fc9f9
 let
-	N = 300
-	θ = LinRange(0., 2π, N)
-	r = LinRange(0., 1., N)
 
-	p = cartesian([hθ, .5])# [0.3, 0.3
-	a = p #cartesian([hθ, 1 ]) # cartesian([hθ, 1.])
-	h = Hyperplane{2,Float64}(a, p)
-	Z =  [Int(side(h, cartesian([t, R]))) for (t, R) in zip(θ,r)]
-
-	Plots.contour(
-		θ, r, (t,R) -> Int(side(h, cartesian([t, R]))),
-		proj = :polar,
-		label = nothing,
-	)
-
-	pc = polar(p)
-	Plots.scatter!(
-		[pc[1]], [pc[2]], proj = :polar
-	)
-	
-	title!("Hyperbolic Hyperplane")
-	ylims!(0., 1.)
-end
-
-# ╔═╡ 2fda3ad1-3388-4342-bccf-e065d5f5da6b
-side(Hyperplane{2,Float64}([1., 0.], [0., 0.]), [-0.1, 0.])
-
-# ╔═╡ c9369f13-bfe2-4e90-ad5a-2ff14389f803
-function unit_speed_geodesic(x,v)
-	c = 1.
-	t -> x ⊕ (tanh(√(c) * t / 2) * v / (√(c) * norm(v)))
-end
-
-# ╔═╡ a8c546b7-3200-4f3a-bdef-2d6eb9fdb8e2
-function d(x, y)
-	c = 1.
-	(2 / √(c)) * atanh(√(c) * norm((-x) ⊕ y))
-end
-
-# ╔═╡ 32b1581b-7159-469b-b0f1-2abd309063b2
-d([0., 0.], [1., 0.])
-
-# ╔═╡ 7264b4bc-9aab-439b-9a51-7bbcf6cfd963
-d(P, Q)
-
-# ╔═╡ cbb02da7-3db0-4644-a8e5-2e1b11eae5fa
-x ⊖ y = x ⊕ (- y)
-
-# ╔═╡ 6eb44e7c-4aa2-465b-9806-04cb687da7ec
-QQ ⊖ QQ
-
-# ╔═╡ ff3b8668-5d52-47d9-8b3a-46e90f3fd044
-QQ ⊕ [0., 0.]
-
-# ╔═╡ 410d6b09-419d-424f-8d51-210200c8ef0e
-λ(p::Vector{F}) where F = (2 / (1 - norm(p) ^ 2))::F   
-
-# ╔═╡ 139241f4-67b2-4dfc-8852-0d9cf091e16e
-function evaluate(h::Hyperplane{D,F}, x) where {D,F}
-	(;a,p) = h
-	c = 1.
-
-	exp(
-		(λ(p) * norm(a) / √(c)) * asinh((2 * √(c) * (((-p) ⊕ x) ⋅ a)) / (1-c * norm((-p) ⊕ x)^2 * norm(a)))
-	)
-end
-
-# ╔═╡ 20edd12a-33aa-4de8-8ccd-211ac85cfd9c
-evaluate(
-	Hyperplane{2,Float64}([1., 0.], [0., 0.]),
-	[.99, 0.]
-)
-
-# ╔═╡ dc758153-04cb-4693-97a0-beac489880c2
-let
-	O = [0., 0.]
-	layer = HyperbolicLayer([
-		Hyperplane{2,Float64}(
-			cartesian([π, 1.]),
-			O,
-		),
-		Hyperplane{2,Float64}(
-			cartesian([π / 2, 1.]),
-			O,
-		),
-		Hyperplane{2,Float64}(
-			cartesian([-π / 5, 1.]),
-			[0.3, -0.5],
-		)
-	])
-
-	#P = [0., .7]
-	N = 20
-	θs = LinRange(0., 2π, 2*N)
-	R =  LinRange(0., .99, N)
-	p = Iterators.product(θs,R)
-	θs = first.(p)
-	R = last.(p)
-	
+	Aₜ₀ = cartesian([θ, 1.])
+	P = [0.8, 0.4]
 	scatter(
-		θs, R, proj=:polar,
-		c = [
-			argmax(evaluate(layer, cartesian([t,r])))
-			for (t,r) in p
-		],
-		label = nothing,
+		([c] for c in polar(P))...,
+		proj=:polar, label="P",
 	)
-	title!("Hyperbolic Layer")
-end
-
-# ╔═╡ 1e59b978-385a-4b11-839f-a71b6b901c61
-function geo(P, Q, num_points = 20)
-	if mod(angle(P),π) ≈ mod(angle(Q),π)
-		return stack((polar(P),polar(Q));dims=1)'
-	end
-	
-	P′ = inverse(P)
-	Q′ = inverse(Q)
-
-	M = midpoint(P, P′)
-	N = midpoint(Q, Q′)
-
-	m = Line(M, π/2 + angle(P, P′))
-	n = Line(N, π/2 + angle(Q, Q′))
-
-	C = intersects(m, n)
-	
-	PC = P - C
-	QC = Q - C
-
-	θₛ, θₑ = extrema((
-		atan(QC[2], QC[1]),
-		atan(PC[2], PC[1]))
+	quiver!(
+		[0.], [0.],
+		quiver=Tuple([c] for c in polar(Aₜ₀)),
+		proj=:polar, label="Aₜ₀",
 	)
-
-	if θₑ - θₛ > π
-		θₛ = mod(θₛ, 2π)
-	end
 	
-	θs = LinRange(θₑ, θₛ, num_points)
-	R = norm(QC)
-
-	stack((polar(x) for x in eachrow([
-		   cos.(θs) .* R .+ C[1];;
-	 	   sin.(θs) .* R .+ C[2]])
-	); dims=1)'
-end
-
-# ╔═╡ 18775697-39e4-4aad-89d7-9d4b034ad525
-let
-	G = geo(P,Q)
-	
-	plot(
-		eachrow(G)..., proj=:polar, label=nothing,
-	)
+	Aₜₚ = P₀ₚ(Aₜ₀, P)
+	A = expₚ(Aₜₚ, P)
 	scatter!(
-		eachcol(stack(
-			(polar(P), polar(Q),
-		);dims=1))...,
-		proj=:polar,
-		label=nothing,
+		([c] for c in polar(A))...,
+		proj=:polar, label="A",
 	)
-	title!("Hyperbolic Geodesic")
+
+	Aθ, Ar = polar(Aₜₚ)
+	Aₜₚ′ = cartesian([
+		Aθ - π/2,
+		Ar
+	])
+	A′ = expₚ(Aₜₚ′, P)
+	scatter!(
+		([c] for c in polar(A′))...,
+		proj=:polar, label="A′",
+	)
+	
 	ylims!(0., 1.)
+	title!("Parallel Transport")
 end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -392,12 +110,10 @@ PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
-PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee"
 
 [compat]
 Plots = "~1.38.5"
-PlutoUI = "~0.7.49"
-PyPlot = "~2.11.0"
+PlutoUI = "~0.7.50"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -406,7 +122,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.9.0-beta4"
 manifest_format = "2.0"
-project_hash = "5c8a9960f55cfed3c9be462fa1ecc8ac25a424ef"
+project_hash = "007fbb57db0277a809224fb92fc2c3ad5ea07613"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -487,12 +203,6 @@ version = "4.6.0"
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
 version = "1.0.2+0"
-
-[[deps.Conda]]
-deps = ["Downloads", "JSON", "VersionParsing"]
-git-tree-sha1 = "e32a90da027ca45d84678b826fffd3110bb3fc90"
-uuid = "8f4d0f93-b110-5947-807f-2305c1781a2d"
-version = "1.8.0"
 
 [[deps.Contour]]
 git-tree-sha1 = "d05d9e7b7aedff4e5b51a029dced05cfb6125781"
@@ -865,9 +575,9 @@ version = "2022.10.11"
 
 [[deps.NaNMath]]
 deps = ["OpenLibm_jll"]
-git-tree-sha1 = "a7c3d1da1189a1c2fe843a3bfa04d18d20eb3211"
+git-tree-sha1 = "0877504529a3e5c3343c6f8b4c0381e57e4387e4"
 uuid = "77ba4419-2d1f-58cd-9bb1-8ffee604a2e3"
-version = "1.0.1"
+version = "1.0.2"
 
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
@@ -925,9 +635,9 @@ version = "10.42.0+0"
 
 [[deps.Parsers]]
 deps = ["Dates", "SnoopPrecompile"]
-git-tree-sha1 = "946b56b2135c6c10bbb93efad8a78b699b6383ab"
+git-tree-sha1 = "6f4fbcd1ad45905a5dee3f4256fabb49aa2110c6"
 uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
-version = "2.5.6"
+version = "2.5.7"
 
 [[deps.Pipe]]
 git-tree-sha1 = "6842804e7867b115ca9de748a0cf6b364523c16d"
@@ -965,9 +675,9 @@ version = "1.38.5"
 
 [[deps.PlutoUI]]
 deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "FixedPointNumbers", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "MIMEs", "Markdown", "Random", "Reexport", "URIs", "UUIDs"]
-git-tree-sha1 = "eadad7b14cf046de6eb41f13c9275e5aa2711ab6"
+git-tree-sha1 = "5bb5129fdd62a2bbbe17c2756932259acf467386"
 uuid = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
-version = "0.7.49"
+version = "0.7.50"
 
 [[deps.Preferences]]
 deps = ["TOML"]
@@ -978,18 +688,6 @@ version = "1.3.0"
 [[deps.Printf]]
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
-
-[[deps.PyCall]]
-deps = ["Conda", "Dates", "Libdl", "LinearAlgebra", "MacroTools", "Serialization", "VersionParsing"]
-git-tree-sha1 = "62f417f6ad727987c755549e9cd88c46578da562"
-uuid = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
-version = "1.95.1"
-
-[[deps.PyPlot]]
-deps = ["Colors", "LaTeXStrings", "PyCall", "Sockets", "Test", "VersionParsing"]
-git-tree-sha1 = "f9d953684d4d21e947cb6d642db18853d43cb027"
-uuid = "d330b81b-6aea-500a-939a-2ce795aea3ee"
-version = "2.11.0"
 
 [[deps.Qt5Base_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Fontconfig_jll", "Glib_jll", "JLLWrappers", "Libdl", "Libglvnd_jll", "OpenSSL_jll", "Pkg", "Xorg_libXext_jll", "Xorg_libxcb_jll", "Xorg_xcb_util_image_jll", "Xorg_xcb_util_keysyms_jll", "Xorg_xcb_util_renderutil_jll", "Xorg_xcb_util_wm_jll", "Zlib_jll", "xkbcommon_jll"]
@@ -1137,9 +835,9 @@ uuid = "410a4b4d-49e4-4fbc-ab6d-cb71b17b3775"
 version = "0.1.6"
 
 [[deps.URIs]]
-git-tree-sha1 = "ac00576f90d8a259f2c9d823e91d1de3fd44d348"
+git-tree-sha1 = "074f993b0ca030848b897beff716d93aca60f06a"
 uuid = "5c2747f8-b7ea-4ff2-ba2e-563bfd36b1d4"
-version = "1.4.1"
+version = "1.4.2"
 
 [[deps.UUIDs]]
 deps = ["Random", "SHA"]
@@ -1158,11 +856,6 @@ version = "0.4.1"
 git-tree-sha1 = "ca0969166a028236229f63514992fc073799bb78"
 uuid = "41fe7b60-77ed-43a1-b4f0-825fd5a5650d"
 version = "0.2.0"
-
-[[deps.VersionParsing]]
-git-tree-sha1 = "58d6e80b4ee071f5efd07fda82cb9fbe17200868"
-uuid = "81def892-9a0e-5fdd-b105-ffc91e053289"
-version = "1.3.0"
 
 [[deps.Wayland_jll]]
 deps = ["Artifacts", "Expat_jll", "JLLWrappers", "Libdl", "Libffi_jll", "Pkg", "XML2_jll"]
@@ -1396,60 +1089,17 @@ version = "1.4.1+0"
 """
 
 # ╔═╡ Cell order:
-# ╟─5d0419cf-e0ed-43f7-a0e1-7c0edd28b5e4
-# ╟─d4519d13-0f15-41c4-b410-b4146378461a
-# ╠═93893566-0f95-4b1f-8188-20d3fb72a048
-# ╠═38281037-3bd9-4c5c-a9a6-078aa957238d
-# ╠═1891edbc-7499-49a3-8af6-08635278ec37
-# ╠═2fda3ad1-3388-4342-bccf-e065d5f5da6b
-# ╠═7f45c19e-5439-45d4-8a76-82019530c2c3
-# ╠═50d1f861-aabc-4c46-9acc-5045cd4aa4c2
-# ╠═75a57ac6-2926-412c-9942-accf02b1e700
-# ╠═7d59d880-f47d-4f68-bfa3-a2463b318c00
-# ╠═67c5ab9e-5d9d-443a-af0c-f381aa7f91ce
-# ╠═c9369f13-bfe2-4e90-ad5a-2ff14389f803
-# ╠═a8c546b7-3200-4f3a-bdef-2d6eb9fdb8e2
-# ╠═8c233a03-cc30-4ab4-9f67-f8241aafc1bb
-# ╠═38498467-600a-4448-8242-a664192960eb
-# ╠═864539ee-a8c1-45c3-9a65-fe00051d1341
-# ╠═4c228ff5-befc-43e2-91dc-b3197370fb56
-# ╠═e3cc4043-9efc-43be-962f-71ec574ca51c
-# ╠═cbb02da7-3db0-4644-a8e5-2e1b11eae5fa
-# ╠═6eb44e7c-4aa2-465b-9806-04cb687da7ec
-# ╠═ed4d338a-4a80-49a3-98a2-a2086113974b
-# ╠═fe707a80-269b-4eae-894e-b28ef2a48037
-# ╠═ff3b8668-5d52-47d9-8b3a-46e90f3fd044
-# ╟─b45df8b0-4056-433c-9d94-9c98dac2a57c
-# ╟─639b0415-8240-47d1-a559-4733e3733e10
-# ╠═410d6b09-419d-424f-8d51-210200c8ef0e
-# ╠═20edd12a-33aa-4de8-8ccd-211ac85cfd9c
-# ╠═139241f4-67b2-4dfc-8852-0d9cf091e16e
-# ╠═ca424f18-7b5e-436a-8a61-1f9516a9fecf
-# ╠═e3e5b0e6-3dc8-49fb-b57f-661387baa6ca
-# ╟─dc758153-04cb-4693-97a0-beac489880c2
-# ╟─ee2aca92-2e7f-4bff-b776-d96fd25b3486
-# ╟─7ae0df56-7257-444b-82ec-806c08ef9fd0
-# ╠═6981cd82-1abd-4c5f-8dea-4167c657c32b
-# ╠═97648f11-34e6-4daa-a971-e2c05fac814d
-# ╠═723eca70-ac6e-11ed-3b6f-f38d516859fe
-# ╠═ecf34087-6469-4744-adbb-bb590d0e2ce2
-# ╠═0afc9af3-77d0-48a8-9da1-de6f640e61df
-# ╠═32b1581b-7159-469b-b0f1-2abd309063b2
-# ╠═7264b4bc-9aab-439b-9a51-7bbcf6cfd963
-# ╠═f7a25b3b-0882-40e2-82ed-d126979f7d87
-# ╠═186882c0-be14-407c-98ef-aded2eaa79a7
-# ╟─18775697-39e4-4aad-89d7-9d4b034ad525
-# ╠═1e59b978-385a-4b11-839f-a71b6b901c61
-# ╠═eb09eb96-eb9b-4b08-81e2-490046ce2175
-# ╠═9443607c-0bbb-4617-a64b-63fa6a94c4c4
-# ╠═6a952c82-d774-4058-8ac9-5b2906a1747f
-# ╠═b95b91d8-fd03-4c8f-be2e-f385909b39ac
-# ╠═486c85be-159c-40dc-9fe9-8e8730375bae
-# ╠═9ac37641-5e76-46b3-a36e-e56ba74d0957
-# ╠═af911670-48af-411b-9a4a-7df22cd82d27
-# ╠═8ef11288-ccd0-42c5-b1d8-17d151a40d65
-# ╠═4d6c568a-399e-4bd2-b5f6-30210c8c4773
-# ╠═c5845cbe-8486-467c-a421-ce43b2fdf1c7
-# ╠═3ff68122-5f43-45ff-b8d8-2d0610422c24
+# ╟─b744dc30-1da1-4fc9-be91-d7f0da75e60c
+# ╟─34ad4c2c-0025-45e6-a656-e4adcd2ea429
+# ╠═12155fa2-138a-43ef-b680-2756ef6fc9f9
+# ╠═10fbb6c8-aea6-11ed-2a45-db063531048d
+# ╠═5ce34272-add4-42c2-9f63-95ad273b3dce
+# ╠═90430697-7e00-42eb-b388-af4e0a88f2d6
+# ╠═fddca860-84be-453f-9f0f-a1a867f3d937
+# ╠═78d68c72-6e6a-4101-8bde-6c8d2a4fedc6
+# ╠═021d0604-9b9e-4280-b585-9d7979c472c9
+# ╠═2ab241b6-fff6-489a-9260-bfd3d3c781e6
+# ╠═dae71632-c77a-490e-a606-ba3835d57a80
+# ╠═67826715-57e9-44cc-9c0e-78064e44840b
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

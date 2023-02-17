@@ -15,6 +15,7 @@
  - [expected_error](https://pangoraw.github.io/Notebooks/expected_error)
  - [gromov_wasserstein](https://pangoraw.github.io/Notebooks/gromov_wasserstein)
  - [hyperbolic_geodesic](https://pangoraw.github.io/Notebooks/hyperbolic_geodesic)
+ - [hyperbolic_parallel_transport](https://pangoraw.github.io/Notebooks/hyperbolic_parallel_transport)
  - [incorporator](https://pangoraw.github.io/Notebooks/incorporator)
  - [less](https://pangoraw.github.io/Notebooks/less)
  - [light_dark_theme](https://pangoraw.github.io/Notebooks/light_dark_theme)
