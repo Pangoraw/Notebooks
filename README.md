@@ -35,6 +35,7 @@
  - [symbolics_gradient](https://pangoraw.github.io/Notebooks/symbolics_gradient)
  - [testset](https://pangoraw.github.io/Notebooks/testset)
  - [tikzjax](https://pangoraw.github.io/Notebooks/tikzjax)
+ - [tree_prototypes_generator](https://pangoraw.github.io/Notebooks/tree_prototypes_generator)
  - [unbalanced_optimal_transport](https://pangoraw.github.io/Notebooks/unbalanced_optimal_transport)
  - [uniform_distribution_sphere](https://pangoraw.github.io/Notebooks/uniform_distribution_sphere)
  - [zmq_socket](https://pangoraw.github.io/Notebooks/zmq_socket)
