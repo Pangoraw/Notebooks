@@ -14,6 +14,9 @@ macro bind(def, element)
     end
 end
 
+# ╔═╡ 4baafea8-f844-40a4-92b8-8ffd1541d8fa
+using BenchmarkTools
+
 # ╔═╡ 66f79f4e-c18a-11ed-1e6f-0b403011721e
 using Graphs, GraphRecipes
 
@@ -52,6 +55,7 @@ function log₀(::UnitCurvatureBall, y)
     atanh(norm(y)) * y / norm(y)
 end
 
+
 """
     exp₀(::AbstractBall, v::AbstractVector)::AbstractVector
 
@@ -66,9 +70,22 @@ function exp₀(::UnitCurvatureBall, v)
 end
 
 """
+	logₚ(::AbstractBall, p::AbstractVector, v::AbstractVector)::AbstractVector
+
+Map point `y` from M → TₚM.
+"""
+function logₚ(ball, p, y)
+	c = curvature(ball)
+	sc = √(c)
+	py = mobius_add(ball, -p, y)
+	npy = norm(py)
+	py * atanh(sc * npy) * 2 / (sc * λ(ball, p)) / npy
+end
+
+"""
     expₚ(::AbstractBall, p::AbstractVector, v::AbstractVector)::AbstractVector
 
-Maps points from TₚM → M.
+Map point `v` from TₚM → M.
 """
 function expₚ(ball, p, v)
     nv = norm(v)
@@ -147,29 +164,38 @@ using LinearAlgebra
 #https://github.com/HazyResearch/hyperbolics/blob/master/combinatorial/utilities.jl#L16
 
 # ╔═╡ c4ac0b74-2a5a-4b5e-b2f8-e9af0445a458
-@bind k Slider(1:5, show_value=true, default=4)
+@bind k Slider(1:10, show_value=true, default=4)
 
 # ╔═╡ b1cd13dc-3bd7-4ba5-8ac4-e283e4d34afa
-@bind r Slider(1:5, show_value=true, default=2,)
+@bind r Slider(1:5, show_value=true, default=3,)
 
-# ╔═╡ 203b922d-d38e-4ef0-933c-3ea5bd4f3b43
-function balanced_tree(r, k)	
-	nedges = r == 1 ? k : r * (r ^ (k - 1) - 1) ÷ (r - 1)
+# ╔═╡ abf82394-87a8-4b69-88e4-290f34e4ddbc
+@bind τ Slider(.01:0.05:5, default = 1.2, show_value = true)
 
-	nedges == 0 ?
-		Graph(1) :
-		Graph(
-			[Graphs.SimpleEdge(
-				1+((i-1)÷r), i+1
-			) for i in 1:nedges]
-		)
+# ╔═╡ d4ee7f5e-0f2a-4ec2-b77d-0c38282abaa1
+circleshape() = let
+	θ = LinRange(0, 2π, 100)
+	cos.(θ), sin.(θ)
 end
 
-# ╔═╡ 813ea5dd-628e-4c22-ae12-68ba97da055e
+# ╔═╡ 0956840f-d1a1-4d3c-b5bd-6fa6765bdbc3
+# @benchmark binary_tree(6)
 
+# ╔═╡ 7aeef5be-fe24-42e4-8d2c-33df91ab3743
+# @benchmark balanced_tree(2, 6)
 
-# ╔═╡ c1b7ce02-8c79-47bf-9a89-85fd770da7ab
+# ╔═╡ 203b922d-d38e-4ef0-933c-3ea5bd4f3b43
+function balanced_tree(r, k::T) where {T}
+	k == 0 && return SimpleGraph(0)
+	k == 1 && return SimpleGraph(1)
+	nedges = r * (r ^ (k - 1) - 1) ÷ (r - 1) # closed form of sum(i -> r ^ i, 1:k-1)
 
+	SimpleGraph(
+		[Graphs.SimpleEdge(
+	 		1+((i-1)÷r), i+1
+		) for i in 1:nedges]
+	)
+end
 
 # ╔═╡ 293a4eb3-64ce-4276-8da3-346ba546402a
 function directed_balanced_tree(r,k)
@@ -186,7 +212,7 @@ end
 G = directed_balanced_tree(r, k)
 
 # ╔═╡ 9c53d732-ed0a-4d2f-80f8-6c90fdc88402
-graphplot(G)
+nv(G) < 30 ? graphplot(G) : nothing
 
 # ╔═╡ cf91f0cc-43d9-40c3-b41d-144f059602a9
 μ(i) = 2π / degree(G, i)
@@ -204,7 +230,7 @@ begin
 		min(μ(e.dst), μ(e.src))
 		for e in edges(G)
 	)
-	τ = ηₘₐₓ
+	#τ = ηₘₐₓ
 end
 
 # ╔═╡ d5159222-2c7b-4331-9eb1-e9a58fd4de4e
@@ -253,35 +279,95 @@ end
 μ(1)
 
 # ╔═╡ a7c0e17e-4d50-47bf-9c29-95b1a021f1ac
-graphplot(G, curves=false)
+nv(G) < 30 ? graphplot(G, curves=false) : nothing
+
+# ╔═╡ a750175a-1fad-442e-a927-0c26c4f20d71
+digits(1, base=2, pad=3)
+
+# ╔═╡ 3565302b-2d14-4f59-955b-5c46ced2d7b1
+import .PoincareBall: ℓ²
 
 # ╔═╡ 0aada676-6fae-4263-a231-95d5b2ac4b68
 # Reflection (circle inversion of x through orthogonal circle centered at a)
 function isometric_transform(a, x)
-    # r   = sqrt(norm(a)^2 - big(1.))
-    # return (r/norm(x - a))^2*(x-a) + a
-    r2 = norm(a)^2 - 1.
-    return r2/norm(x - a)^2 * (x-a) + a
+    r2 = ℓ²(a) - 1. # radius of the orthogonal circle through Pythagore
+    return r2 / ℓ²(x - a) * (x - a) + a
 end
 
 # ╔═╡ ccd45722-f805-4611-80cf-7fc4f4f5c6af
 # Inversion taking mu to origin
+# hyperbolic reflection
 function reflect_at_zero(mu,x)
-    a = mu/norm(mu)^2
-    return isometric_transform(a,x)
+    a = mu / PoincareBall.ℓ²(mu) # inverse of mu with 𝓒
+    return isometric_transform(a, x)
+end
+
+# ╔═╡ c3b426b8-7dfc-486d-b8c5-e4766443bd85
+# Lemma 1: page 357, Geometry, Brannan et al.
+"""
+```julia
+ρ(α::Complex, z::Complex)::Complex
+```
+
+### Lemma 1
+
+The hyperbolic reflection \$\\rho\$ in the d-line \$\\ell\$ that is part of a
+Euclidean circle with centre \$\\alpha\$ is given by the hyperbolic transformation:
+
+```math
+\\rho(z) = \\frac{\\alpha\\bar z - 1}{\\bar z - \\bar\\alpha}\\quad(z\\in\\mathscr D)
+```
+
+"""
+function ρ(α, z)
+	ᾱ = conj(α)
+	z̄ = conj(z)
+	(α * z̄ - 1.) /
+		(z̄ - ᾱ)
+end
+
+# ╔═╡ 33d009d3-805d-4dd3-b5cb-27d3c20349fa
+@bind bθ Slider(0:0.1:2π)
+
+# ╔═╡ 6d79617d-6d49-40cf-85ff-508ba3a05916
+let
+	ball = PoincareBall.Ball()
+
+	a = [.2, .3]
+	b = [0., .0]
+	
+	PoincareBall.logₚ(
+		ball,
+		a,
+		b,
+	)
 end
 
 # ╔═╡ 5828cf17-c8c8-41f1-b3e2-a5391b5234b7
-reflect_at_zero([.2, .3], [0., 10.])
-
-# ╔═╡ a0196428-7987-4570-8e30-2041d7b45a31
-
+reflect_at_zero([.2, .3], [0., 0.])
 
 # ╔═╡ 8e3416d7-3a04-4104-bc65-dd5c8d3852ef
 function hyp_to_euc_dist(x)
-    return sqrt.((cosh.(x)-big(1))./(cosh.(x)+big(1)))
+    return sqrt.((cosh.(x)-1)./(cosh.(x)+1))
     # return (exp.(x)-big(1))./(exp.(x)+big(1))
 end
+
+# ╔═╡ b638adab-34d9-4c9a-950e-7396257cef4b
+function hyp_embedding_r(G, dim, τ, root=1)
+	n = nv(G)
+	T = zeros(Float64, dim, n)
+	η = hyp_to_euc_dist(τ)
+	
+	d_max = maximum(outdegree(G, i) for i in vertices(G))
+	d = outdegree(G, root)
+
+	
+	
+	T
+end
+
+# ╔═╡ 734174ed-f73d-4463-bed2-3f16cb0f7452
+hyp_embedding_r(G, 2, 1.)
 
 # ╔═╡ 1116c540-26db-4168-ab9b-6c46afa83bd4
 function hyp_embedding(G, root, τ)
@@ -294,13 +380,20 @@ function hyp_embedding(G, root, τ)
 
 	while !isempty(q)
 		current = pop!(q)
+		α = 2π / degree(G, current)
+		angle = current == root ? 0. : 
+			let
+				p0 = reflect_at_zero(
+					T[:,current],
+					T[:,first(inneighbors(G,current))],
+				)
+				atan(p0[2],p0[1])
+			end
+	
 		for (k, i) in enumerate(outneighbors(G, current))
-			angle = current == 1 ? 0. : atan(T[2,current], T[1,current])
-			α = 2π / (outdegree(G, current) + (current != 1))
-
 			child = η .* [cos(angle + α * k),
 						  sin(angle + α * k)]
-			T[:,i] = current == 1 ? child : reflect_at_zero(
+			T[:,i] = current == root ? child : reflect_at_zero(
 				T[:,current],
 				child
 			)
@@ -313,43 +406,120 @@ end
 
 # ╔═╡ df73dbbe-5938-459c-903f-dd53f7a3555e
 let
-	circleshape() = let
-		θ = LinRange(0, 2π, 100)
-		cos.(θ), sin.(θ)
-	end
+	T = hyp_embedding(G, 1, τ)
 
-	T = hyp_embedding(G, 1, 1.2)
+	# i = 2
+	# i1, i2 = i * r, i * r + 1
+	# X1 = T[:,i1]
+	# X2 = T[:,i2]
+	# γ = PoincareBall.unit_speed_geodesic(ball, X1, X2)
+	
+	plot(circleshape(), size = (500, 500), label=nothing, color=:gray,
+		 legend=:bottom)
 
-	plot(circleshape(), size = (500, 500), label=nothing, color=:gray)
+	show_geodesic = false
 
-	for i in 1:size(T,2)-1
-		p = 1+((i-1)÷r)
-		i+=1
-		quiver!(
-			[T[1,p]], [T[2,p]],
-			quiver=(
-				[T[1,i] - T[1,p]],
-				[T[2,i] - T[2,p]],
-			),
-			color=:gray
+	if show_geodesic
+		plot!(
+			[γ(t)[1] for t in 0:0.1:1],
+			[γ(t)[2] for t in 0:0.1:1],
+			label=nothing, #"Geodesic",
+		)
+		plot!(
+			[γ(t)[1] for t in 1:0.1:3],
+			[γ(t)[2] for t in 1:0.1:3],
+			linestyle=:dash,
+			color=2,
+			label=nothing, #"Geodesic",
+		)
+		plot!(
+			[γ(t)[1] for t in 0:-0.1:-2],
+			[γ(t)[2] for t in 0:-0.1:-2],
+			linestyle=:dash,
+			color=2,
+			label=nothing, #"Geodesic",
 		)
 	end
-	scatter!(
-		eachrow(T)...; label=nothing,
-		color=1,
-		marker=:hex,
+		
+	# for i in 1:size(T,2)-1
+	# 	p = 1+((i-1)÷r)
+	# 	i+=1
+	# 	quiver!(
+	# 		[T[1,p]], [T[2,p]],
+	# 		quiver=(
+	# 			[T[1,i] - T[1,p]],
+	# 			[T[2,i] - T[2,p]],
+	# 		),
+	# 		color=:gray
+	# 	)
+	# end
+	# scatter!(
+	# 	eachrow(T)...; label=nothing,
+	# 	color=1,
+	# 	marker=:hex,
+	# )
+	graphplot!(
+		G,
+		x=T[1,:],
+		y=T[2,:],
+		curves=false,
 	)
 
 	xgrid!(false)
 	ygrid!(false)
 	xaxis!(false)
 	yaxis!(false)
-	title!("Balanced Tree Embedding")
-	plot!()
+	# title!("Hyperbolic Tree Embedding")
+	p = plot!()
+	savefig(p, "tree.pdf")
+	p
+end
+
+# ╔═╡ 49a54225-3176-4413-8211-12715529a71f
+let
+	T = hyp_embedding(G, 1, τ)
+	graphplot(
+		G, x=T[1,:], y=T[2,:],
+		curves=false,
+	)
 end
 
 # ╔═╡ fc8f1339-67b8-40b5-b7b0-86d50274965e
 hyp_embedding(G, 1, 0.2)
+
+# ╔═╡ c55f0db5-7bb1-4e63-9b4b-43b703c37902
+let
+	ball = PoincareBall.Ball()
+	a = [.7, .1]
+	br = .6
+	# bθ = π
+	b = br .* [cos(bθ), sin(bθ)]
+	c = reflect_at_zero(a, b)
+	
+	d = ρ(Complex(a...) / ℓ²(a), Complex(b...))
+	d = [real(d), imag(d)]
+
+	angle = atan(c[2], c[1])
+	e = hyp_to_euc_dist(1.2) .* [cos(angle + 2π / 3),
+				                 sin(angle + 2π / 3)]
+	e = reflect_at_zero(a, e)
+
+	plot([θ for θ in 0:.01:2π], [1. for _ in 0:.01:2π], proj=:polar)
+	for (x, label) in zip((a, b, c, d, e),
+	     			 (:a, :b, :c, :d, :e))
+		scatter!(
+			[atan(x[2], x[1])],
+			[norm(x)];
+			proj=:polar,
+			label=string(label),
+		)
+	end
+	
+	plot!()
+end
+
+# ╔═╡ 63aaeb2e-c5cc-43c9-8477-d6b2a91ea9e5
+hyp_to_euc_dist(1.2)
 
 # ╔═╡ 35cfb2f6-9523-485f-b89e-7edb164d1a02
 md"""
@@ -413,6 +583,7 @@ end
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 GraphRecipes = "bd48cda9-67a9-57be-86fa-5b3c104eda73"
 Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -421,6 +592,7 @@ Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 
 [compat]
+BenchmarkTools = "~1.3.2"
 GraphRecipes = "~0.5.12"
 Graphs = "~1.8.0"
 LoopVectorization = "~0.12.152"
@@ -434,7 +606,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.9.0-rc1"
 manifest_format = "2.0"
-project_hash = "f17a8df90165b7705cf20365b0b22272ff68d591"
+project_hash = "7f70ba7a7f506d1530b61c2e6c85edebc089615e"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -506,6 +678,12 @@ version = "1.0.1"
 
 [[deps.Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
+
+[[deps.BenchmarkTools]]
+deps = ["JSON", "Logging", "Printf", "Profile", "Statistics", "UUIDs"]
+git-tree-sha1 = "d9a9701b899b30332bbcb3e1679c41cce81fb0e8"
+uuid = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+version = "1.3.2"
 
 [[deps.BitFlags]]
 git-tree-sha1 = "43b1a4a8f797c1cddadf60499a8a077d4af2cd2d"
@@ -1230,6 +1408,10 @@ version = "1.3.0"
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
+[[deps.Profile]]
+deps = ["Printf"]
+uuid = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"
+
 [[deps.Qt5Base_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Fontconfig_jll", "Glib_jll", "JLLWrappers", "Libdl", "Libglvnd_jll", "OpenSSL_jll", "Pkg", "Xorg_libXext_jll", "Xorg_libxcb_jll", "Xorg_xcb_util_image_jll", "Xorg_xcb_util_keysyms_jll", "Xorg_xcb_util_renderutil_jll", "Xorg_xcb_util_wm_jll", "Zlib_jll", "xkbcommon_jll"]
 git-tree-sha1 = "0c03844e2231e12fda4d0086fd7cbe4098ee8dc5"
@@ -1737,13 +1919,17 @@ version = "1.4.1+0"
 # ╠═57b87f37-053e-417e-ad02-c661addeaa4b
 # ╠═c4ac0b74-2a5a-4b5e-b2f8-e9af0445a458
 # ╠═b1cd13dc-3bd7-4ba5-8ac4-e283e4d34afa
+# ╠═abf82394-87a8-4b69-88e4-290f34e4ddbc
 # ╠═d54854a3-397c-41ae-9218-469e35cb39b8
+# ╠═d4ee7f5e-0f2a-4ec2-b77d-0c38282abaa1
 # ╠═df73dbbe-5938-459c-903f-dd53f7a3555e
+# ╟─49a54225-3176-4413-8211-12715529a71f
 # ╟─9c53d732-ed0a-4d2f-80f8-6c90fdc88402
 # ╠═82675de7-5518-47a9-a4b9-3d49341713a4
+# ╠═4baafea8-f844-40a4-92b8-8ffd1541d8fa
+# ╠═0956840f-d1a1-4d3c-b5bd-6fa6765bdbc3
+# ╠═7aeef5be-fe24-42e4-8d2c-33df91ab3743
 # ╠═203b922d-d38e-4ef0-933c-3ea5bd4f3b43
-# ╟─813ea5dd-628e-4c22-ae12-68ba97da055e
-# ╠═c1b7ce02-8c79-47bf-9a89-85fd770da7ab
 # ╠═cf91f0cc-43d9-40c3-b41d-144f059602a9
 # ╠═293a4eb3-64ce-4276-8da3-346ba546402a
 # ╠═2d61134a-ee9f-43f8-88be-ffcc3faea5a9
@@ -1753,13 +1939,21 @@ version = "1.4.1+0"
 # ╠═9d3d3e27-d5df-4067-98da-aa811868a892
 # ╠═a7c0e17e-4d50-47bf-9c29-95b1a021f1ac
 # ╠═5757e1c8-383d-42f3-a735-293f2c804678
+# ╠═a750175a-1fad-442e-a927-0c26c4f20d71
+# ╠═734174ed-f73d-4463-bed2-3f16cb0f7452
+# ╠═b638adab-34d9-4c9a-950e-7396257cef4b
 # ╠═1116c540-26db-4168-ab9b-6c46afa83bd4
 # ╠═4650e6e1-edfb-4934-bb27-75097ddf9775
+# ╠═3565302b-2d14-4f59-955b-5c46ced2d7b1
 # ╠═0aada676-6fae-4263-a231-95d5b2ac4b68
 # ╠═ccd45722-f805-4611-80cf-7fc4f4f5c6af
+# ╟─c3b426b8-7dfc-486d-b8c5-e4766443bd85
+# ╠═33d009d3-805d-4dd3-b5cb-27d3c20349fa
+# ╟─c55f0db5-7bb1-4e63-9b4b-43b703c37902
+# ╠═63aaeb2e-c5cc-43c9-8477-d6b2a91ea9e5
+# ╠═6d79617d-6d49-40cf-85ff-508ba3a05916
 # ╠═5828cf17-c8c8-41f1-b3e2-a5391b5234b7
 # ╠═69f59e2d-cbc8-4748-ab76-7c94b91e12a5
-# ╠═a0196428-7987-4570-8e30-2041d7b45a31
 # ╠═fc8f1339-67b8-40b5-b7b0-86d50274965e
 # ╠═8e3416d7-3a04-4104-bc65-dd5c8d3852ef
 # ╟─35cfb2f6-9523-485f-b89e-7edb164d1a02
