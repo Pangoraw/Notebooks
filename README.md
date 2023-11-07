@@ -2,9 +2,12 @@
 
 <!-- LINKS -->
  - [OperationalTransform](https://pangoraw.github.io/Notebooks/OperationalTransform)
+ - [airline_analysis](https://pangoraw.github.io/Notebooks/airline_analysis)
+ - [alpha_deblending](https://pangoraw.github.io/Notebooks/alpha_deblending)
  - [barlow](https://pangoraw.github.io/Notebooks/barlow)
  - [busemann_gradient_flow](https://pangoraw.github.io/Notebooks/busemann_gradient_flow)
  - [button_effect](https://pangoraw.github.io/Notebooks/button_effect)
+ - [cifar100_tree](https://pangoraw.github.io/Notebooks/cifar100_tree)
  - [circular_gradients](https://pangoraw.github.io/Notebooks/circular_gradients)
  - [cohen_kappa_score](https://pangoraw.github.io/Notebooks/cohen_kappa_score)
  - [cookie_cutter](https://pangoraw.github.io/Notebooks/cookie_cutter)
@@ -44,5 +47,6 @@
  - [tree_prototypes_generator](https://pangoraw.github.io/Notebooks/tree_prototypes_generator)
  - [unbalanced_optimal_transport](https://pangoraw.github.io/Notebooks/unbalanced_optimal_transport)
  - [uniform_distribution_sphere](https://pangoraw.github.io/Notebooks/uniform_distribution_sphere)
+ - [usa_meter_ml](https://pangoraw.github.io/Notebooks/usa_meter_ml)
  - [zmq_socket](https://pangoraw.github.io/Notebooks/zmq_socket)
 <!-- END_LINKS -->
