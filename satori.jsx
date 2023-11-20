@@ -199,7 +199,7 @@ const [firstLine, ...rest]= htmlContent.split("\n")
 
 firstLine += `<meta property="og:image" content="${dataUrl}" />`;
 
-await Deno.writeTextFile("OperationalTransform.html", [firstLine, ...lines].join("\n"))
+await Deno.writeTextFile("OperationalTransform.html", [firstLine, ...rest].join("\n"))
 
 console.log("Done!")
 
