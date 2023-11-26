@@ -367,14 +367,25 @@ cell_2 = uppercase(cell_1)
 
 # ╔═╡ 9a188c6b-d59a-404a-bf35-92460115fad4
 md"""
-##
+## Example: Simple notebook
 """
 
 # ╔═╡ ce714f47-dbbe-47d3-a47f-70179f02f71b
-# PlutoUI.ExperimentalLayout.hbox([
-# 	html"<iframe style=\"width: 900px;\" src=\"https://pangoraw.github.io/Notebooks/cycle.html\">",
-# 	NotebookViewer.load_remote("https://gist.github.com/Pangoraw/dca1001857c75a106705d3a730e0ef08/raw/2b76b8bb2a92242ec5d5488f9c82f5706b9f78ef/cycle.jl")
-# ])
+PlutoUI.ExperimentalLayout.hbox([
+	html"<iframe style=\"width: 900px;\" src=\"https://pangoraw.github.io/Notebooks/simple_example_notebook\">",
+	NotebookViewer.load_remote("https://gist.github.com/Pangoraw/90c58644efa68fc5199f73b77f089d15/raw/c6ee599ca90296fa024fc5f4381c9dd4c1025c0e/simple_example_notebook.jl")
+]; style=Dict(:height => "300px"))
+
+# ╔═╡ 6717df0a-11b9-4a88-9926-ad876c5d6f68
+md"""
+## Example: 'The tower of Hanoi'
+"""
+
+# ╔═╡ f7686455-b5ec-4995-8807-9ccc35f52fa6
+PlutoUI.ExperimentalLayout.hbox([
+	html"<iframe style=\"width: 900px;\" src=\"https://featured.plutojl.org/basic/tower%20of%20hanoi\">",
+	NotebookViewer.load_remote("https://featured.plutojl.org/basic/Tower%20of%20Hanoi.jl")
+]; style=Dict(:height => "300px"))
 
 # ╔═╡ 2294b1d7-ed9b-4157-a5b1-7b76d4239195
 md"""
@@ -385,7 +396,7 @@ md"""
 PlutoUI.ExperimentalLayout.hbox([
 	html"<iframe style=\"width: 900px;\" src=\"https://pangoraw.github.io/Notebooks/cycle.html\">",
 	NotebookViewer.load_remote("https://gist.github.com/Pangoraw/dca1001857c75a106705d3a730e0ef08/raw/2b76b8bb2a92242ec5d5488f9c82f5706b9f78ef/cycle.jl")
-])
+]; style=Dict(:height => "300px"))
 
 # ╔═╡ e7231536-f826-4267-9cd5-8703edd864cf
 md"""
@@ -394,7 +405,7 @@ md"""
 
 # ╔═╡ 15bca6db-bf7e-4ee7-8f3b-17d2f20154bd
 md"""
-## Code evaluation in new module
+## Code evaluation in a new module
 
  - Enables struct redefinitions
  - Old constants are no longer in scope
@@ -474,13 +485,21 @@ module Workspace2
 	MyStruct
 end
 
+# ╔═╡ 95fbcd7b-5753-4bbb-a155-32079118dbc0
+# Tries to trigger gc by setting values to `nothing`
+try
+	@eval Workspace1 MyStruct = nothing
+catch end
+
 # ╔═╡ bc97a180-d986-43a4-9e21-83eeaa93f3fe
 md"""
 ## Wrapping cells in functions
 
-Pluto actually [wraps the cell code in functions](https://github.com/fonsp/Pluto.jl/pull/720) if applicable.
+Pluto [wraps the cell code in functions](https://github.com/fonsp/Pluto.jl/pull/720) if applicable.
 
 > Similar to a REPL thunk compilation but with native code/inference caching.
+>
+> Much lower cost for mutable globals.
 """
 
 # ╔═╡ 0c948331-2c0b-48a1-aee7-ffaa836776ae
@@ -572,8 +591,18 @@ md"""
 >  - Consistent behavior with function wrapping (macroexpansion happens when the function is defined).
 """
 
+# ╔═╡ 232f1b0d-bcf2-4215-acf6-fdeb8777772d
+md"""
+Example expansion from the `HypertextLiteral.@htl` macro:
+"""
+
 # ╔═╡ 7854e856-b558-47ed-848d-da63ab030b2d
 @macroexpand @htl "<h3>Welcome $name</h3>"
+
+# ╔═╡ d342fd52-1f34-4618-b7e0-5f6fb38470a7
+function cell_code_expanded(name)
+	 @htl "<h3>Welcome $name</h3>"
+end
 
 # ╔═╡ a4550c48-1c45-4785-bd3e-9732ad5aeae6
 md"""
@@ -605,60 +634,72 @@ md"""
 
 # ╔═╡ e213bf20-f7d9-4b3f-9474-cac6975628a3
 md"""
+A set of macros heavily inspired by React.js hooks. Which can be used to:
+
  - Adding state to cells.
  - Rerunning cells from Julia.
  - Handling side-effects.
 """
 
-# ╔═╡ e5e7a069-1240-460f-8ed9-08bb1c26a8ef
-md"""
-## React.js
-
-```javascript
-const NameInput = ({ defaultValue }) => {
-	
-}
-```
-"""
-
 # ╔═╡ 63d6141e-efb1-4a81-8fa4-dc537a79dc6e
 md"""
-## `@use_ref()`
+## `@use_ref(initial_value)`
 
-Returns a `Ref` which is consistent across *implicit* re-runs.
+Returns a `Ref` which is consistent across *implicit* re-runs. The value of the reference is reset on *explicit* runs.
 """
 
 # ╔═╡ 5526549e-a33a-4cb0-bf54-6e2dedb0652b
-macro my_use_ref()
-	Ref{Any}(nothing)
+macro my_use_ref(initial_value)
+	ref = Ref{Any}(nothing)
+
+	quote
+		if $(ref)[] === nothing
+			$(ref)[] = $(esc(initial_value))
+		end
+		$ref
+	end
 end
 
+# ╔═╡ 20149133-2a73-4851-8774-837b0044f835
+@bind value Slider(0:10, show_value=true)
+
 # ╔═╡ 9e7f8f43-384f-4fad-bb5c-044a80d8d1e1
-ref = @use_ref(10)
+begin
+	sum_of_all_values = @use_ref(0)
+	sum_of_all_values[] += value
+end
 
 # ╔═╡ 6e02d754-e055-4c9c-9e72-20d487eb740c
-ref
+sum_of_all_values
 
 # ╔═╡ 5b755fa1-3914-419d-ad38-eca9495a12e4
 md"""
 ## `@use_state(initial_value)`
 
-Returns the current state value and a callback to update the value.
+Returns the current state value and a callback to update the value and trigger a run for the cell.
 """
 
 # ╔═╡ ccef9e0c-4a70-4ee2-9c74-b46e6dd06051
-state, set_state = @use_state(10)
+state = let
+	state, set_state = @use_state(:loading)
+
+	if state === :loading
+		@async begin
+			sleep(1.)
+			set_state(:done)
+		end
+	end
+
+	state
+end
 
 # ╔═╡ 708c9c4d-ceed-4cfb-b7de-a16bc5296caf
 state
 
-# ╔═╡ f978438b-96b9-4d79-bfc5-2063c0c929c1
-state == 10 && set_state(100)
-
 # ╔═╡ 6175e2b3-4ce6-4994-81e2-2bd54e2629dd
 md"""
 !!! warning
-	It is very easy to introduce infinite loops with `@use_state()`.
+	It is very easy to introduce infinite loops with `@use_state()` by unconditionnally calling `set_state()`.
 """
 
 # ╔═╡ b94a1ac7-81b9-448d-938b-5c31023b637a
@@ -707,7 +748,7 @@ end
 md"""
 ##
 
-The return value of the effectful computation can return a cleanup callback. This callback is called when the expression cache is cleared.
+The return value of the effectful computation can return a cleanup callback. This callback is called when the expression cache is cleared (on *explicit* runs).
 """
 
 # ╔═╡ d9f3742e-3c4d-4c28-aa6e-83537a9c1d51
@@ -723,7 +764,7 @@ start_server(port) = nothing; stop(server) = nothing;
 end
 
 # ╔═╡ b2a72302-c03c-48b0-ae91-afa430c78838
-data = randn(100);
+data = randn(1000);
 
 # ╔═╡ 872a86f0-b54c-4c3c-a9e8-0481de575c85
 λ = 1.5
@@ -732,12 +773,17 @@ data = randn(100);
 function train_model(λ, data)
 	sleep(.3abs(randn())) # hehe nice ml
 	Text("Model (1 000 parameters)")
-end
+end;
 
 # ╔═╡ 86b1ce71-ca31-421a-ba40-8f5117169d16
 my_model = @use_memo([λ, train_model]) do
 	train_model(λ, data)
 end
+
+# ╔═╡ f817e3f3-8836-46eb-9136-db1cfff506f9
+md"""
+It is a combination of `@use_effect` and `@use_ref`.
+"""
 
 # ╔═╡ 4d897464-1ee0-4ee9-b52a-bb792232689f
 md"""
@@ -749,13 +795,12 @@ md"""
 > Combining `@use_state` with `@use_effect` to trigger running cells with Julia events. 
 """
 
-# ╔═╡ 82b1e171-41aa-4402-bf52-d2f855ac1361
+# ╔═╡ d64f3ffb-7e6d-4e39-90cc-2b35911cb586
 md"""
-##
+ 1. Have a state variable with `@use_state`.
+ 2. Use `@use_effect` to spawn task and interrupt task on explicit runs.
+ 3. The task calls the `set_state` callback when an event happens.
 """
-
-# ╔═╡ 819cf6f6-e725-4fe2-9327-a1ea2f2851e5
-Docs.Binding(PlutoLinks, Symbol("@revise"))
 
 # ╔═╡ 7bdcc6e2-2edf-44a8-a26e-55b68e2d0e37
 md"""
@@ -765,12 +810,20 @@ md"""
 # ╔═╡ d660b53f-7298-4ee7-ba19-f29a38c2e73e
 Docs.Binding(PlutoLinks, Symbol("@use_file"))
 
+# ╔═╡ 82b1e171-41aa-4402-bf52-d2f855ac1361
+md"""
+##
+"""
+
+# ╔═╡ 819cf6f6-e725-4fe2-9327-a1ea2f2851e5
+Docs.Binding(PlutoLinks, Symbol("@revise"))
+
 # ╔═╡ 0a678b6f-29a2-4fe7-9a8a-611e4ad76dcd
 md"""
 # Thank you for listening! 🎈
 
  - `Pluto.jl` channel on the [JuliaLang Zulip](https://julialang.zulipchat.com).
- - Meetup tomorow in Eindhoven.
+ - Meetup tomorrow in Eindhoven.
 """
 
 # ╔═╡ b61cc444-fabc-42e4-b2d5-5479f825d38f
@@ -787,7 +840,7 @@ md"""
 html"""
 <style>
   	main, pluto-notebook {
-		width: 900px !important;
+		// width: 900px !important;
 	}
 
 	h1, h2 {
@@ -796,6 +849,10 @@ html"""
 
 	h1, h2, h3, h4 {
 		text-align: center;
+	}
+
+	#edit_or_run {
+		display: none !important;
 	}
 </style>
 """
@@ -1353,8 +1410,10 @@ version = "17.4.0+2"
 # ╟─9b434e82-a50a-4d69-a322-f0581fe3dc2a
 # ╠═2618e467-eb22-4a20-8ff1-14b5179d0d9d
 # ╠═ff7195c2-7875-4d15-b4a6-42147f0dd659
-# ╠═9a188c6b-d59a-404a-bf35-92460115fad4
-# ╠═ce714f47-dbbe-47d3-a47f-70179f02f71b
+# ╟─9a188c6b-d59a-404a-bf35-92460115fad4
+# ╟─ce714f47-dbbe-47d3-a47f-70179f02f71b
+# ╟─6717df0a-11b9-4a88-9926-ad876c5d6f68
+# ╟─f7686455-b5ec-4995-8807-9ccc35f52fa6
 # ╟─2294b1d7-ed9b-4157-a5b1-7b76d4239195
 # ╟─dfa77823-13fd-4cd1-8ccd-24ab37999c9a
 # ╟─e7231536-f826-4267-9cd5-8703edd864cf
@@ -1369,6 +1428,7 @@ version = "17.4.0+2"
 # ╠═83f87a68-2416-42df-aa3b-d8addb7d2e36
 # ╟─fd3b2ef1-af67-481c-a847-d3dca4aa2e72
 # ╠═ce2cd8f5-bbd8-4e78-b62f-c1227b17ed57
+# ╠═95fbcd7b-5753-4bbb-a155-32079118dbc0
 # ╟─bc97a180-d986-43a4-9e21-83eeaa93f3fe
 # ╠═4a1d33f2-d780-42d8-8e69-162041ccc60e
 # ╠═0c948331-2c0b-48a1-aee7-ffaa836776ae
@@ -1386,21 +1446,22 @@ version = "17.4.0+2"
 # ╠═1c56e96f-856d-4cdf-b692-cdc1ed88e59b
 # ╠═78d8db2e-b0f1-4989-85d2-e76c511ad911
 # ╟─dee5994b-4e3f-49ad-b352-637870640b3b
+# ╟─232f1b0d-bcf2-4215-acf6-fdeb8777772d
 # ╠═7854e856-b558-47ed-848d-da63ab030b2d
+# ╠═d342fd52-1f34-4618-b7e0-5f6fb38470a7
 # ╟─a4550c48-1c45-4785-bd3e-9732ad5aeae6
 # ╟─e525054f-9d94-41dd-9bc3-20f0012ccd77
 # ╟─b5e4b8ec-8fb4-4ff5-9430-78c853ddf368
 # ╠═94bc7835-2f35-46b7-bcbd-64a8761172a4
 # ╟─e213bf20-f7d9-4b3f-9474-cac6975628a3
-# ╠═e5e7a069-1240-460f-8ed9-08bb1c26a8ef
 # ╟─63d6141e-efb1-4a81-8fa4-dc537a79dc6e
 # ╠═5526549e-a33a-4cb0-bf54-6e2dedb0652b
+# ╠═20149133-2a73-4851-8774-837b0044f835
 # ╠═9e7f8f43-384f-4fad-bb5c-044a80d8d1e1
 # ╠═6e02d754-e055-4c9c-9e72-20d487eb740c
 # ╟─5b755fa1-3914-419d-ad38-eca9495a12e4
 # ╠═ccef9e0c-4a70-4ee2-9c74-b46e6dd06051
 # ╠═708c9c4d-ceed-4cfb-b7de-a16bc5296caf
-# ╠═f978438b-96b9-4d79-bfc5-2063c0c929c1
 # ╟─6175e2b3-4ce6-4994-81e2-2bd54e2629dd
 # ╟─b94a1ac7-81b9-448d-938b-5c31023b637a
 # ╠═6661b9c8-758f-47d0-8150-9f0c8f4661da
@@ -1417,13 +1478,15 @@ version = "17.4.0+2"
 # ╠═872a86f0-b54c-4c3c-a9e8-0481de575c85
 # ╠═86b1ce71-ca31-421a-ba40-8f5117169d16
 # ╟─fd1eeb9e-d8c8-4a31-86ca-a4b7c33fa8da
+# ╟─f817e3f3-8836-46eb-9136-db1cfff506f9
 # ╟─4d897464-1ee0-4ee9-b52a-bb792232689f
 # ╠═134e0517-cca3-454c-ae3c-41e3acda3272
 # ╟─af2433b1-ed00-4c4f-b058-03ffa370a7ff
-# ╟─82b1e171-41aa-4402-bf52-d2f855ac1361
-# ╟─819cf6f6-e725-4fe2-9327-a1ea2f2851e5
+# ╟─d64f3ffb-7e6d-4e39-90cc-2b35911cb586
 # ╟─7bdcc6e2-2edf-44a8-a26e-55b68e2d0e37
 # ╟─d660b53f-7298-4ee7-ba19-f29a38c2e73e
+# ╟─82b1e171-41aa-4402-bf52-d2f855ac1361
+# ╟─819cf6f6-e725-4fe2-9327-a1ea2f2851e5
 # ╟─0a678b6f-29a2-4fe7-9a8a-611e4ad76dcd
 # ╟─b61cc444-fabc-42e4-b2d5-5479f825d38f
 # ╟─f8919c7c-e84d-4ae3-b729-b535690478b0
