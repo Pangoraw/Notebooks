@@ -40,7 +40,7 @@ jobs:
                 julia -e 'using Pkg
                   Pkg.activate(mktempdir())
                   Pkg.add([
-                    Pkg.PackageSpec(name="PlutoSliderServer", version="0.3.2-0.3"),
+                    Pkg.PackageSpec(url="https://github.com/JuliaPluto/PlutoSliderServer.jl", rev="satori_og_image"),
                   ])
 
                   import PlutoSliderServer
@@ -49,16 +49,9 @@ jobs:
                     Export_cache_dir="pluto_state_cache",
                     Export_baked_notebookfile=false,
                     Export_baked_state=false,
+                    Export_generate_og_image=true,
                     # more parameters can go here
                   )'
-
-
-            - uses: denoland/setup-deno@v1
-              with:
-                deno-version: v1.x
-
-            - name: Make OG image
-              run: deno run --allow-all satori.jsx
 
             - name: Upload GitHub Pages artifact
               uses: actions/upload-pages-artifact@v2.0.0
