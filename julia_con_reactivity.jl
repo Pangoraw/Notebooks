@@ -1,6 +1,16 @@
 ### A Pluto.jl notebook ###
 # v0.19.32
 
+#> [frontmatter]
+#> image = "https://private-user-images.githubusercontent.com/9824244/285644696-57d42057-78e4-4821-b094-44cdd06bbaca.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTEiLCJleHAiOjE3MDA5OTU0OTYsIm5iZiI6MTcwMDk5NTE5NiwicGF0aCI6Ii85ODI0MjQ0LzI4NTY0NDY5Ni01N2Q0MjA1Ny03OGU0LTQ4MjEtYjA5NC00NGNkZDA2YmJhY2EucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQUlXTkpZQVg0Q1NWRUg1M0ElMkYyMDIzMTEyNiUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyMzExMjZUMTAzOTU2WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9NTg0ODRlYzQ2YTE4ZDZjMWMzZWRlMGIzNmU4YjIzMTkxMTMzN2I5OTMzMGYxNTM4N2RkOTBlZTQ4Y2IyZGM5MCZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.P6PNFTvaOws2lFLcLj8pceWaJTinpIX_k2fcTqtVf_8"
+#> title = "A macro-view of reactivity in Pluto.jl 🎈"
+#> date = "2023-01-12"
+#> description = "Presentation for JuliaCon Local Eindhoven 2023."
+#> 
+#>     [[frontmatter.author]]
+#>     name = "Paul Berg"
+#>     url = "https://github.com/pangoraw"
+
 using Markdown
 using InteractiveUtils
 
@@ -355,6 +365,17 @@ cell_1 = "hello"
 # ╔═╡ ff7195c2-7875-4d15-b4a6-42147f0dd659
 cell_2 = uppercase(cell_1)
 
+# ╔═╡ 9a188c6b-d59a-404a-bf35-92460115fad4
+md"""
+##
+"""
+
+# ╔═╡ ce714f47-dbbe-47d3-a47f-70179f02f71b
+# PlutoUI.ExperimentalLayout.hbox([
+# 	html"<iframe style=\"width: 900px;\" src=\"https://pangoraw.github.io/Notebooks/cycle.html\">",
+# 	NotebookViewer.load_remote("https://gist.github.com/Pangoraw/dca1001857c75a106705d3a730e0ef08/raw/2b76b8bb2a92242ec5d5488f9c82f5706b9f78ef/cycle.jl")
+# ])
+
 # ╔═╡ 2294b1d7-ed9b-4157-a5b1-7b76d4239195
 md"""
 ## Example: Cycles
@@ -453,6 +474,28 @@ module Workspace2
 	MyStruct
 end
 
+# ╔═╡ bc97a180-d986-43a4-9e21-83eeaa93f3fe
+md"""
+## Wrapping cells in functions
+
+Pluto actually [wraps the cell code in functions](https://github.com/fonsp/Pluto.jl/pull/720) if applicable.
+
+> Similar to a REPL thunk compilation but with native code/inference caching.
+"""
+
+# ╔═╡ 0c948331-2c0b-48a1-aee7-ffaa836776ae
+# 1. Takes global references as parameters (no mutable global access)
+function cell_code_function(name, uppercase)
+	result = begin
+		# 2. Embed cell code
+		name_uppercase = uppercase(name)
+		@htl "<h3>Welcome $name_uppercase</h3>"
+	end
+
+	# 3. Returns output result and each assigned variables
+	(result, (name_uppercase,))
+end
+
 # ╔═╡ 81cf4d97-9e80-41c9-9bdb-a4dabab7c137
 md"""
 ## Meta-programming
@@ -510,6 +553,51 @@ x
 # ╔═╡ 78d8db2e-b0f1-4989-85d2-e76c511ad911
 @macroexpand @my_macro x
 
+# ╔═╡ dee5994b-4e3f-49ad-b352-637870640b3b
+md"""
+## Cell lifecycle
+
+> Expanded expressions are cached and reused.
+> ```julia
+> # 1. Macroexpand once and analyze definitions/references.
+> expr = macroexpand(@__MODULE__, cell_code)
+> reactive_node = ExpressionExplorer.compute_reactive_node(expr)
+>
+> # 2. For every run, only eval the expanded expressions.
+> result = eval(@__MODULE__, expr)
+> ```
+>
+>  - Costly expansion costs are amortized.
+>  - Hypothesis: macroexpansion should be deterministic.
+>  - Consistent behavior with function wrapping (macroexpansion happens when the function is defined).
+"""
+
+# ╔═╡ 7854e856-b558-47ed-848d-da63ab030b2d
+@macroexpand @htl "<h3>Welcome $name</h3>"
+
+# ╔═╡ a4550c48-1c45-4785-bd3e-9732ad5aeae6
+md"""
+## Expression cache
+
+The cached expression is used when:
+
+ - The cell is run because a parent cell was updated.
+ - The cell is run because of a reference to a `@bind`ed value.
+
+> This is an **implicit** run.
+"""
+
+# ╔═╡ e525054f-9d94-41dd-9bc3-20f0012ccd77
+md"""
+The expression cache is reset when:
+
+ - Pressing $(html"<kbd>Shift</kbd>") + $(html"<kbd>Enter</kbd>").
+ - Pressing the run button.
+ - One of the called macros is redefined.
+
+> This is an **explicit** run.
+"""
+
 # ╔═╡ b5e4b8ec-8fb4-4ff5-9430-78c853ddf368
 md"""
 ## PlutoHooks.jl
@@ -539,6 +627,11 @@ md"""
 
 Returns a `Ref` which is consistent across *implicit* re-runs.
 """
+
+# ╔═╡ 5526549e-a33a-4cb0-bf54-6e2dedb0652b
+macro my_use_ref()
+	Ref{Any}(nothing)
+end
 
 # ╔═╡ 9e7f8f43-384f-4fad-bb5c-044a80d8d1e1
 ref = @use_ref(10)
@@ -578,6 +671,18 @@ Perform a computation only when values of dependencies change (`old_value != new
 # ╔═╡ 6661b9c8-758f-47d0-8150-9f0c8f4661da
 @bind name TextField(default="Bob")
 
+# ╔═╡ 4a1d33f2-d780-42d8-8e69-162041ccc60e
+begin
+	name_uppercase = uppercase(name)
+	@htl "<h3>Welcome $name_uppercase</h3>"
+end;
+
+# ╔═╡ 00ce23cb-9039-4d2b-8bf6-50f652a026d7
+let (result, (name_uppercase_local,)) = cell_code_function(name, uppercase)
+	global name_uppercase2 = name_uppercase_local
+	result
+end;
+
 # ╔═╡ d56db069-14ce-4bfd-95c4-a1bd073d5b4e
 save_name_to_database!(name) = nothing; # imagine that it saves!
 
@@ -602,8 +707,20 @@ end
 md"""
 ##
 
-The return value of the effectful computation can return a cleanup callback.
+The return value of the effectful computation can return a cleanup callback. This callback is called when the expression cache is cleared.
 """
+
+# ╔═╡ d9f3742e-3c4d-4c28-aa6e-83537a9c1d51
+port = 8080;
+
+# ╔═╡ 4852e03c-6b4c-4445-a510-8d119a901afc
+start_server(port) = nothing; stop(server) = nothing;
+
+# ╔═╡ 1e2cb989-f33d-4d35-8897-df07e6c08c48
+@use_effect([port]) do
+	server = start_server(port)
+	() -> stop(server)
+end
 
 # ╔═╡ b2a72302-c03c-48b0-ae91-afa430c78838
 data = randn(100);
@@ -627,14 +744,33 @@ md"""
 ## PlutoLinks.jl
 """
 
-# ╔═╡ d4b7c0b0-8c27-4e3c-851d-35e06512193d
+# ╔═╡ af2433b1-ed00-4c4f-b058-03ffa370a7ff
+md"""
+> Combining `@use_state` with `@use_effect` to trigger running cells with Julia events. 
+"""
 
+# ╔═╡ 82b1e171-41aa-4402-bf52-d2f855ac1361
+md"""
+##
+"""
+
+# ╔═╡ 819cf6f6-e725-4fe2-9327-a1ea2f2851e5
+Docs.Binding(PlutoLinks, Symbol("@revise"))
+
+# ╔═╡ 7bdcc6e2-2edf-44a8-a26e-55b68e2d0e37
+md"""
+##
+"""
+
+# ╔═╡ d660b53f-7298-4ee7-ba19-f29a38c2e73e
+Docs.Binding(PlutoLinks, Symbol("@use_file"))
 
 # ╔═╡ 0a678b6f-29a2-4fe7-9a8a-611e4ad76dcd
 md"""
 # Thank you for listening! 🎈
 
  - `Pluto.jl` channel on the [JuliaLang Zulip](https://julialang.zulipchat.com).
+ - Meetup tomorow in Eindhoven.
 """
 
 # ╔═╡ b61cc444-fabc-42e4-b2d5-5479f825d38f
@@ -652,6 +788,10 @@ html"""
 <style>
   	main, pluto-notebook {
 		width: 900px !important;
+	}
+
+	h1, h2 {
+		page-break-before: always;
 	}
 
 	h1, h2, h3, h4 {
@@ -1213,6 +1353,8 @@ version = "17.4.0+2"
 # ╟─9b434e82-a50a-4d69-a322-f0581fe3dc2a
 # ╠═2618e467-eb22-4a20-8ff1-14b5179d0d9d
 # ╠═ff7195c2-7875-4d15-b4a6-42147f0dd659
+# ╠═9a188c6b-d59a-404a-bf35-92460115fad4
+# ╠═ce714f47-dbbe-47d3-a47f-70179f02f71b
 # ╟─2294b1d7-ed9b-4157-a5b1-7b76d4239195
 # ╟─dfa77823-13fd-4cd1-8ccd-24ab37999c9a
 # ╟─e7231536-f826-4267-9cd5-8703edd864cf
@@ -1227,6 +1369,10 @@ version = "17.4.0+2"
 # ╠═83f87a68-2416-42df-aa3b-d8addb7d2e36
 # ╟─fd3b2ef1-af67-481c-a847-d3dca4aa2e72
 # ╠═ce2cd8f5-bbd8-4e78-b62f-c1227b17ed57
+# ╟─bc97a180-d986-43a4-9e21-83eeaa93f3fe
+# ╠═4a1d33f2-d780-42d8-8e69-162041ccc60e
+# ╠═0c948331-2c0b-48a1-aee7-ffaa836776ae
+# ╠═00ce23cb-9039-4d2b-8bf6-50f652a026d7
 # ╟─81cf4d97-9e80-41c9-9bdb-a4dabab7c137
 # ╟─e9e70cde-c9cf-47c1-9528-734dd41adba9
 # ╠═33845bd2-0517-4b16-bf1c-a880a45816e7
@@ -1239,11 +1385,16 @@ version = "17.4.0+2"
 # ╠═454bb746-57a8-48b6-a55a-f32ed735f233
 # ╠═1c56e96f-856d-4cdf-b692-cdc1ed88e59b
 # ╠═78d8db2e-b0f1-4989-85d2-e76c511ad911
+# ╟─dee5994b-4e3f-49ad-b352-637870640b3b
+# ╠═7854e856-b558-47ed-848d-da63ab030b2d
+# ╟─a4550c48-1c45-4785-bd3e-9732ad5aeae6
+# ╟─e525054f-9d94-41dd-9bc3-20f0012ccd77
 # ╟─b5e4b8ec-8fb4-4ff5-9430-78c853ddf368
 # ╠═94bc7835-2f35-46b7-bcbd-64a8761172a4
 # ╟─e213bf20-f7d9-4b3f-9474-cac6975628a3
 # ╠═e5e7a069-1240-460f-8ed9-08bb1c26a8ef
 # ╟─63d6141e-efb1-4a81-8fa4-dc537a79dc6e
+# ╠═5526549e-a33a-4cb0-bf54-6e2dedb0652b
 # ╠═9e7f8f43-384f-4fad-bb5c-044a80d8d1e1
 # ╠═6e02d754-e055-4c9c-9e72-20d487eb740c
 # ╟─5b755fa1-3914-419d-ad38-eca9495a12e4
@@ -1258,6 +1409,9 @@ version = "17.4.0+2"
 # ╟─7dab41a2-e3bb-4a1f-8fb1-83df644e2050
 # ╠═c2e83939-a53e-4a46-870e-ee1cb4f063d4
 # ╟─005433a6-1418-47a4-b28c-1ec7bba58314
+# ╠═d9f3742e-3c4d-4c28-aa6e-83537a9c1d51
+# ╠═1e2cb989-f33d-4d35-8897-df07e6c08c48
+# ╟─4852e03c-6b4c-4445-a510-8d119a901afc
 # ╟─17b647ea-4623-43e5-9f73-aec1f31b9d19
 # ╠═b2a72302-c03c-48b0-ae91-afa430c78838
 # ╠═872a86f0-b54c-4c3c-a9e8-0481de575c85
@@ -1265,7 +1419,11 @@ version = "17.4.0+2"
 # ╟─fd1eeb9e-d8c8-4a31-86ca-a4b7c33fa8da
 # ╟─4d897464-1ee0-4ee9-b52a-bb792232689f
 # ╠═134e0517-cca3-454c-ae3c-41e3acda3272
-# ╠═d4b7c0b0-8c27-4e3c-851d-35e06512193d
+# ╟─af2433b1-ed00-4c4f-b058-03ffa370a7ff
+# ╟─82b1e171-41aa-4402-bf52-d2f855ac1361
+# ╟─819cf6f6-e725-4fe2-9327-a1ea2f2851e5
+# ╟─7bdcc6e2-2edf-44a8-a26e-55b68e2d0e37
+# ╟─d660b53f-7298-4ee7-ba19-f29a38c2e73e
 # ╟─0a678b6f-29a2-4fe7-9a8a-611e4ad76dcd
 # ╟─b61cc444-fabc-42e4-b2d5-5479f825d38f
 # ╟─f8919c7c-e84d-4ae3-b729-b535690478b0
