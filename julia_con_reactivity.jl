@@ -313,27 +313,44 @@ end
 
 # ╔═╡ 2b472858-8ace-11ee-32b4-2ddba7820910
 md"""
-# A macro-view of reactivity in Pluto.jl 🎈
+# A macro-view of reactivity in Pluto.jl
 #### JuliaCon Local Eindhoven ⋅ 01/12/2023 ⋅ Paul Berg
 """
 
-# ╔═╡ 6bfb7e9d-d663-4d1b-be40-d5e14ab9b0e9
-html"<button style=\"margin: auto; display: block;\" onclick=present()>Present</button>"
+# ╔═╡ 5f0b3b13-40f9-4aa3-a2a3-f11fc25a12b2
+PlutoUI.ExperimentalLayout.hbox([
+	html"""
+	<a style="margin:auto; display:block;" href="https://pangoraw.github.io/Notebooks/julia_con_reactivity">Presentation</a>
+	""",
+	html"<button style=\"margin: auto; display: block;\" onclick=present()>Present</button>"
+])
 
 # ╔═╡ 1fae5c09-811f-461d-a89a-050500332c3b
 md"""
 ## What is reactivity?
 """
 
-# ╔═╡ df528e09-be02-4946-9b3a-dcca89f59359
-my_name = "Paul"
-
-# ╔═╡ dcc713c0-12ed-4e0e-bff0-bbaa4feac845
-"Hello " * my_name * "!"
+# ╔═╡ b1f0b06f-8446-43df-bbb6-f3f4e945fbf3
+PlutoUI.ExperimentalLayout.Div(md"""
+![](https://user-images.githubusercontent.com/6933510/80637344-24ac0180-8a5f-11ea-82dd-813dbceca9c9.gif)
+"""; style="width: 300px;")
 
 # ╔═╡ f8071483-9440-4123-8d02-1585f4c80ed0
 md"""
 ## An overview
+"""
+
+# ╔═╡ 7b27ead9-9469-463c-89eb-2a8f673dee0f
+md"""
+ - How reactivity works.
+ - PlutoHooks.jl to build reactive experiences.
+
+![](https://raw.githubusercontent.com/gist/fonsp/9a36c183e2cad7c8fc30290ec95eb104/raw/ca3a38a61f95cd58d79d00b663a3c114d21e284e/cute.svg)
+"""
+
+# ╔═╡ 095360a9-619d-41a8-9c2f-26b4ce8b8683
+md"""
+## Exploring expressions!
 """
 
 # ╔═╡ 916e7bfb-1b0b-4eee-aec1-7a4456873d5f
@@ -802,14 +819,6 @@ md"""
  3. The task calls the `set_state` callback when an event happens.
 """
 
-# ╔═╡ 7bdcc6e2-2edf-44a8-a26e-55b68e2d0e37
-md"""
-##
-"""
-
-# ╔═╡ d660b53f-7298-4ee7-ba19-f29a38c2e73e
-Docs.Binding(PlutoLinks, Symbol("@use_file"))
-
 # ╔═╡ 82b1e171-41aa-4402-bf52-d2f855ac1361
 md"""
 ##
@@ -818,8 +827,16 @@ md"""
 # ╔═╡ 819cf6f6-e725-4fe2-9327-a1ea2f2851e5
 Docs.Binding(PlutoLinks, Symbol("@revise"))
 
+# ╔═╡ 2f881357-e94b-4b27-8b8c-f548aeaec03a
+md"""
+##
+![](https://user-images.githubusercontent.com/9824244/152143460-798ea60c-a3ec-446f-ba12-c11b513281fe.gif)
+"""
+
 # ╔═╡ 0a678b6f-29a2-4fe7-9a8a-611e4ad76dcd
 md"""
+$(html"<span></span>")
+
 # Thank you for listening! 🎈
 
  - `Pluto.jl` channel on the [JuliaLang Zulip](https://julialang.zulipchat.com).
@@ -843,7 +860,7 @@ html"""
 		// width: 900px !important;
 	}
 
-	h1, h2 {
+	h1:not(:first-child), h2 {
 		page-break-before: always;
 	}
 
@@ -1398,11 +1415,12 @@ version = "17.4.0+2"
 
 # ╔═╡ Cell order:
 # ╟─2b472858-8ace-11ee-32b4-2ddba7820910
-# ╟─6bfb7e9d-d663-4d1b-be40-d5e14ab9b0e9
+# ╟─5f0b3b13-40f9-4aa3-a2a3-f11fc25a12b2
 # ╟─1fae5c09-811f-461d-a89a-050500332c3b
-# ╠═df528e09-be02-4946-9b3a-dcca89f59359
-# ╠═dcc713c0-12ed-4e0e-bff0-bbaa4feac845
+# ╟─b1f0b06f-8446-43df-bbb6-f3f4e945fbf3
 # ╟─f8071483-9440-4123-8d02-1585f4c80ed0
+# ╟─7b27ead9-9469-463c-89eb-2a8f673dee0f
+# ╟─095360a9-619d-41a8-9c2f-26b4ce8b8683
 # ╠═774a864e-f283-4e47-a86d-a64349dc658c
 # ╠═916e7bfb-1b0b-4eee-aec1-7a4456873d5f
 # ╠═cfe39d27-4aac-44d7-8918-75fe1889382d
@@ -1483,10 +1501,9 @@ version = "17.4.0+2"
 # ╠═134e0517-cca3-454c-ae3c-41e3acda3272
 # ╟─af2433b1-ed00-4c4f-b058-03ffa370a7ff
 # ╟─d64f3ffb-7e6d-4e39-90cc-2b35911cb586
-# ╟─7bdcc6e2-2edf-44a8-a26e-55b68e2d0e37
-# ╟─d660b53f-7298-4ee7-ba19-f29a38c2e73e
 # ╟─82b1e171-41aa-4402-bf52-d2f855ac1361
 # ╟─819cf6f6-e725-4fe2-9327-a1ea2f2851e5
+# ╟─2f881357-e94b-4b27-8b8c-f548aeaec03a
 # ╟─0a678b6f-29a2-4fe7-9a8a-611e4ad76dcd
 # ╟─b61cc444-fabc-42e4-b2d5-5479f825d38f
 # ╟─f8919c7c-e84d-4ae3-b729-b535690478b0
