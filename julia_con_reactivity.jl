@@ -851,7 +851,7 @@ html"""
 		text-align: center;
 	}
 
-	#edit_or_run {
+	div.edit_or_run {
 		display: none !important;
 	}
 </style>
