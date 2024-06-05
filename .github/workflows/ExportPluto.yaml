@@ -40,7 +40,7 @@ jobs:
                 julia -e 'using Pkg
                   Pkg.activate(mktempdir())
                   Pkg.add([
-                    Pkg.PackageSpec(url="https://github.com/JuliaPluto/PlutoSliderServer.jl", rev="satori_og_image"),
+                    Pkg.PackageSpec(url="https://github.com/JuliaPluto/PlutoSliderServer.jl"),
                   ])
 
                   import PlutoSliderServer
