@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.41
+# v0.19.42
 
 using Markdown
 using InteractiveUtils
@@ -22,6 +22,9 @@ md"""
 # hyperspheres in the Poincaré ball model.
 """
 
+# ╔═╡ 6b5af8f1-6d5c-474a-a715-4e6a81ebfc4b
+
+
 # ╔═╡ a4d12f20-bd37-48db-9fe9-fd28089628fb
 const IdealPoint = Float64
 
@@ -42,12 +45,6 @@ center = (
 	(1 - radius) * cos(θ),
 	(1 - radius) * sin(θ)
 )
-
-# ╔═╡ ca7a4a29-73fe-4c5e-986a-0ab79ed3f9bb
-
-
-# ╔═╡ ecfd870e-a7b2-4917-b46b-03d9d306235b
-
 
 # ╔═╡ 0454ffa4-23df-11ef-26c1-c196c7d16f20
 begin
@@ -384,6 +381,7 @@ version = "17.4.0+2"
 
 # ╔═╡ Cell order:
 # ╟─d28cb1b5-5dde-416f-8617-6f3727d4aeba
+# ╠═6b5af8f1-6d5c-474a-a715-4e6a81ebfc4b
 # ╟─9c586389-19d9-4434-8895-3d3b32c10db8
 # ╟─b05a265d-ceb3-4db3-a245-cea381c9486a
 # ╟─6a0956e0-b42c-4b8f-af11-d2bb148fcc53
@@ -394,8 +392,6 @@ version = "17.4.0+2"
 # ╠═eec6a88d-aed2-4c30-b421-402f90e98983
 # ╠═6e9e7a12-0390-4658-b0d4-b85d4c6091aa
 # ╠═0d1af3b6-e977-4fde-8ff7-2be7c2bab61c
-# ╠═ca7a4a29-73fe-4c5e-986a-0ab79ed3f9bb
-# ╠═ecfd870e-a7b2-4917-b46b-03d9d306235b
 # ╠═a19fac7c-8f2d-4fd0-a415-ee5d677b7792
 # ╠═0454ffa4-23df-11ef-26c1-c196c7d16f20
 # ╟─00000000-0000-0000-0000-000000000001

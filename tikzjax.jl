@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.0
+# v0.19.29
 
 using Markdown
 using InteractiveUtils
@@ -60,8 +60,9 @@ HypertextLiteral = "~0.9.3"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.7.1"
+julia_version = "1.10.0-beta3"
 manifest_format = "2.0"
+project_hash = "12b2e5dab6bc229d7692234b6b2202f7e3ec539c"
 
 [[deps.HypertextLiteral]]
 git-tree-sha1 = "2b078b5a615c6c0396c77810d92ee8c6f470d238"

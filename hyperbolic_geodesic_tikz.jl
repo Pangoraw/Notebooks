@@ -287,7 +287,7 @@ tikz"""
 cartesian((θ, r)) = (r * cos(θ), r * sin(θ))
 
 # ╔═╡ c83cbaeb-78d1-4a67-9a6f-da265e4bc316
-tt = let scale = 5
+tt = let scale = 3
 
 	j = (-.8, .4)
 	θ, r = polar(j)
