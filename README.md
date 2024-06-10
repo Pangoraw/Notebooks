@@ -12,6 +12,7 @@
  - [cohen_kappa_score](https://pangoraw.github.io/Notebooks/cohen_kappa_score)
  - [cookie_cutter](https://pangoraw.github.io/Notebooks/cookie_cutter)
  - [cookie_cutter_2d](https://pangoraw.github.io/Notebooks/cookie_cutter_2d)
+ - [cooptimal_transport](https://pangoraw.github.io/Notebooks/cooptimal_transport)
  - [cycle](https://pangoraw.github.io/Notebooks/cycle)
  - [deno_updater](https://pangoraw.github.io/Notebooks/deno_updater)
  - [diff_tree](https://pangoraw.github.io/Notebooks/diff_tree)
