@@ -1,6 +1,17 @@
 ### A Pluto.jl notebook ###
 # v0.20.0
 
+#> [frontmatter]
+#> title = "Sierpinski n-gons"
+#> date = "2024-10-14"
+#> 
+#>     [[frontmatter.author]]
+#>     name = "Paul Berg"
+#>     url = "https://github.com/Pangoraw"
+#>     [[frontmatter.author]]
+#>     name = "Guillaume Mahey"
+#>     url = "https://sites.google.com/view/mahey-personal-page/home"
+
 using Markdown
 using InteractiveUtils
 
