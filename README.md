@@ -50,6 +50,7 @@
  - [procrustes](https://pangoraw.github.io/Notebooks/procrustes)
  - [rotation](https://pangoraw.github.io/Notebooks/rotation)
  - [rotation_invariant_ot](https://pangoraw.github.io/Notebooks/rotation_invariant_ot)
+ - [sierpinski](https://pangoraw.github.io/Notebooks/sierpinski)
  - [simple_example_notebook](https://pangoraw.github.io/Notebooks/simple_example_notebook)
  - [sliced_ot_figure](https://pangoraw.github.io/Notebooks/sliced_ot_figure)
  - [sphere_projection](https://pangoraw.github.io/Notebooks/sphere_projection)
