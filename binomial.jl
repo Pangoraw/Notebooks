@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.20.17
+# v0.20.24
 
 using Markdown
 using InteractiveUtils
@@ -41,6 +41,172 @@ n = $n
 k = $k
 """
 
+# ╔═╡ cabd2a0f-7a2d-45e1-bd90-4433fd330cf3
+function fwd(x)
+    FT = eltype(x)
+    p = FT(2π)
+    return x .* cos.(p .* x)
+end
+
+# ╔═╡ e219ec87-c0ce-4d0f-9efd-257717a9ffbc
+function bwd(x, dx)
+    FT = eltype(x)
+    p = FT(2π)
+
+    return dx .* (cos.(p .* x) .+ x .* -sin.(p .* x) .* p)
+end
+
+# ╔═╡ 9f9212b9-866e-48df-bc7b-a8d8b23e3aae
+x = Float32[0.0f0, π / 4, π / 8]
+
+# ╔═╡ dd7663ed-0428-4471-a6af-a7c8eb3fdcbe
+let x′ = x
+	for _ in 1:5
+		x′ = fwd(x′)
+	end
+	x′
+end
+
+# ╔═╡ dfc8e90e-9fd4-464c-a7ba-b1bab29e2d20
+let
+	# Regular scheme
+	x₁ = fwd(x)
+	x₂ = fwd(x₁)
+	x₃ = fwd(x₂)
+	x₄ = fwd(x₃)
+	x₅ = fwd(x₄)
+	
+	dx₅ = fill!(similar(x), one(eltype(x)))
+	dx₄ = bwd(x₄, dx₅)
+	@info "rev step ₅" x′′ = x₄ dx = dx₅
+	dx₃ = bwd(x₃, dx₄)
+	@info "rev step ₄" x′′ = x₃ dx = dx₄
+	dx₂ = bwd(x₂, dx₃)
+	@info "rev step ₃" x′′ = x₂ dx = dx₃
+	dx₁ = bwd(x₁, dx₂)
+	@info "rev step ₂" x′′ = x₁ dx = dx₂
+	dx = bwd(x, dx₁)
+	@info "rev step 1" x′′ = x dx = dx₁
+
+	x₅, dx, dx₁
+end
+
+# ╔═╡ bcfd6fab-a46c-4f52-95dc-865247f8fca6
+N = 5
+
+# ╔═╡ 3df58811-b894-44a4-97d2-9edc25b97acf
+correct_y, correct_dx = let
+	x′ = x
+
+	caches = []
+	for _ in 1:N
+		push!(caches, x′)
+		x′ = fwd(x′)
+	end
+
+	dx′ = fill!(similar(x), one(eltype(x)))
+	for _ in N:-1:1
+		x′′ = pop!(caches)
+		dx′ = bwd(x′′, dx′)
+	end
+
+	x′, dx′
+end
+
+# ╔═╡ ade6c613-3668-4dd8-891c-9f286ed085e5
+function binomial_split(n::Int, s::Int)
+    s == 0 && error("no checkpoints available")
+    (s == 1 || n == 1) && return 1
+
+    j = 1
+    binom = s  # C(s, s-1) = s
+
+    while binom < n
+        j += 1
+        binom = binom * (j + s - 1) ÷ j
+    end
+
+    return binom == n ? j : j - 1
+end
+
+# ╔═╡ 5d664439-08d5-4ec9-ba08-d4289b09d840
+binom_y, binom_dx, _... = let K = 3
+	x′ = x
+	
+	ckpts = typeof(x)[]
+	ckpts_i = Int[]
+
+	i = 0
+	for k in 0:K-1
+		push!(ckpts, x′)
+		push!(ckpts_i, i)
+		remain = N - i
+		split = binomial_split(remain, K-k)
+		for _ in 1:split
+			x′ = fwd(x′)
+			i += 1
+		end
+	end
+	@info "end" i
+
+	sp = K
+	dx′ = fill!(similar(x), one(eltype(x)))
+	for rev_it in N:-1:1
+		x′′ = ckpts[sp]
+		prev_i = ckpts_i[sp]
+		sp -= 1
+
+		while prev_i+1 < rev_it
+			remain = rev_it - prev_i
+			budget = K - sp
+			split = binomial_split(remain, budget)
+
+			sp += 1
+			ckpts[sp] = x′′
+			ckpts_i[sp] = prev_i
+
+			@debug "entered the loop" prev_i rev_it split
+			for _ in 1:split - (prev_i+split == rev_it)
+				@warn "remat"
+				x′′ = fwd(x′′)
+			end
+			
+			prev_i += split
+		end
+
+
+		@info "rev step $rev_it" x′′ dx′
+		dx′ = bwd(x′′, dx′)
+	end
+	
+	x′, dx′
+end
+
+# ╔═╡ 61d0e1e0-50f7-4640-bac1-8ff2eccae1b3
+binom_dx ≈ correct_dx
+
+# ╔═╡ cb31e17e-0dd9-4771-bc3f-a19995607ffc
+binom_y ≈ correct_y
+
+# ╔═╡ 7189bfc1-5a0e-42ba-893e-41ca36cf81eb
+binom_y, correct_y
+
+# ╔═╡ 8f3d938b-e3ff-4256-8409-9634b5a1989c
+let N = 10
+	K = 3
+
+	i = 0
+	for k in K:-1:0
+		remain = N - i
+		p = binomial_split(remain,k)
+		for j in 1:p
+			@info "iter" i
+			i+=1
+		end
+	end
+	
+end
+
 # ╔═╡ 60d76596-2de2-11f1-2bee-adfca4d6b4f1
 @memoize function binomial_coeff(n, k)
     k < 0 || k > n && return 0
@@ -51,6 +217,12 @@ k = $k
     end
     r
 end
+
+# ╔═╡ 850c9409-9fef-44c2-94c7-51d3612f540f
+binomial_coeff.(1:10, 2)
+
+# ╔═╡ 5684af88-0f63-41c0-963d-902e9bd5cfab
+binomial_coeff(10,0)
 
 # ╔═╡ bf89227b-dee7-43d8-8981-3be07c17fc70
 abstract type Step end
@@ -167,6 +339,23 @@ end
 	t == 1 && return 1
 	max_reversals(t - 1, k - 1) + max_reversals(t - 1, k)
 end
+
+# ╔═╡ 777ed18d-c61f-4b89-96d3-fb230874678f
+max_reversals.(1:10, 3)
+
+# ╔═╡ 7c33603c-4d43-482d-92fa-6ab0e6287bed
+  function to_forward(num_steps, k)
+      k <= 1 && return num_steps
+      t = 1
+      while max_reversals(t, k) < num_steps
+          t += 1
+      end
+      tail = max_reversals(t - 1, k - 1)
+      num_steps - tail
+  end
+
+# ╔═╡ 7aa385c2-ee2f-4a51-bf44-4154540762bf
+to_forward(2,1)
 
 # ╔═╡ dfcb3573-6277-4f0e-b9d4-1a5137cd08da
 function revolve!(steps, lb, ub, n, k; first=false)
@@ -427,6 +616,87 @@ visualize_scheme(
 visualize_scheme(
 	linear_schedule(n)
 )
+
+# ╔═╡ 2f28dd2f-b686-4e1a-bd47-bb408d0fdd5d
+visualize_scheme(
+	full_revolve(15, 3)
+)
+
+# ╔═╡ 337f945f-79f8-4846-9aae-0faef9b8bf75
+let
+	schedule = Step[]
+
+	n = 15
+	K = 4
+	
+	cache_indices = Int[]
+
+	step = 0
+	for k′ in K:-1:1
+		push!(schedule, Store(step+1))
+		push!(cache_indices, step+1)
+		
+		num_steps = n - step
+		d = to_forward(num_steps, k′)
+
+		push!(schedule, Forward(step+1, step+1+d))
+		step += d
+	end
+
+	current_rev_step = n+1
+	k′ = K
+	for current_rev_step in n:-1:1
+		ckpt_step = cache_indices[k′]
+		push!(schedule, Load(ckpt_step))
+
+		k′ -= 1
+	
+	    while ckpt_step < current_rev_step
+	        remaining = current_rev_step - ckpt_step
+	        split = binomial_split(remaining, K - k′)
+	        #save checkpoint[capo] at ckpt_step
+	        k′ += 1
+			cache_indices[k′] = ckpt_step
+			push!(schedule, Store(ckpt_step))
+			push!(schedule, Forward(ckpt_step, ckpt_step+split))
+	        #advance(ckpt_step, ckpt_step + split)
+	        ckpt_step += split
+	    end
+
+		push!(
+			schedule, Reverse(current_rev_step+1, current_rev_step)
+		)
+
+		@info "here" maxlog=n current_rev_step ckpt_step
+		current_rev_step = ckpt_step
+		
+		# while ckpt_step+1 < current_rev_step
+		# 	num_steps = current_rev_step - ckpt_step
+		# 	split = to_forward(num_steps, K - k′)
+		# 	#@info num_steps split
+		# 	push!(schedule, Store(ckpt_step))
+		# 	k′+= 1
+		#
+		# 	ckpt_step += split
+		# end
+	end
+	
+	# step = 10
+	# for sp in 1:K
+	# 	cache = stack[end+1-sp]
+	# 	cur_step = caches_indices[end+1-sp]
+
+	# 	diff = step - cur_step
+
+	# 	@show cur_step diff
+
+	# 	for _ in 1:diff
+	# 		step -= 1
+	# 	end
+	# end
+
+	visualize_scheme(schedule)
+end
 
 # ╔═╡ 4d741ebb-7094-4f5d-b729-f5eb2ef3da96
 visualize_scheme(schedule)
@@ -733,6 +1003,26 @@ version = "17.4.0+2"
 # ╠═e4de752e-fa8d-4776-b0c9-64e89da9746c
 # ╟─6e427696-df50-4557-b29b-6cfc1f702455
 # ╟─65ee7021-1646-4113-807b-7b3d177494b5
+# ╠═777ed18d-c61f-4b89-96d3-fb230874678f
+# ╠═850c9409-9fef-44c2-94c7-51d3612f540f
+# ╠═5684af88-0f63-41c0-963d-902e9bd5cfab
+# ╠═7c33603c-4d43-482d-92fa-6ab0e6287bed
+# ╠═2f28dd2f-b686-4e1a-bd47-bb408d0fdd5d
+# ╠═cabd2a0f-7a2d-45e1-bd90-4433fd330cf3
+# ╠═e219ec87-c0ce-4d0f-9efd-257717a9ffbc
+# ╠═9f9212b9-866e-48df-bc7b-a8d8b23e3aae
+# ╠═dd7663ed-0428-4471-a6af-a7c8eb3fdcbe
+# ╠═dfc8e90e-9fd4-464c-a7ba-b1bab29e2d20
+# ╠═61d0e1e0-50f7-4640-bac1-8ff2eccae1b3
+# ╠═cb31e17e-0dd9-4771-bc3f-a19995607ffc
+# ╠═7189bfc1-5a0e-42ba-893e-41ca36cf81eb
+# ╠═bcfd6fab-a46c-4f52-95dc-865247f8fca6
+# ╟─3df58811-b894-44a4-97d2-9edc25b97acf
+# ╠═5d664439-08d5-4ec9-ba08-d4289b09d840
+# ╠═ade6c613-3668-4dd8-891c-9f286ed085e5
+# ╠═8f3d938b-e3ff-4256-8409-9634b5a1989c
+# ╠═337f945f-79f8-4846-9aae-0faef9b8bf75
+# ╠═7aa385c2-ee2f-4a51-bf44-4154540762bf
 # ╠═4d741ebb-7094-4f5d-b729-f5eb2ef3da96
 # ╠═5bfdf747-b78a-4500-8633-b63188e7a274
 # ╠═60d76596-2de2-11f1-2bee-adfca4d6b4f1
